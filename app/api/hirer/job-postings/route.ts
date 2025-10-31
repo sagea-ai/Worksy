@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client";
 import { PositionType, JobPostingStatus, ExperienceLevel } from "@prisma/client";
 
 // GET - List job postings for the hirer
+const prisma = new PrismaClient();
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();

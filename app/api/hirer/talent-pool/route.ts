@@ -50,9 +50,10 @@ export async function GET(request: NextRequest) {
         userType: "STUDENT",
         onboardingCompleted: true,
         profile: {
-          isNot: null,
-          selectedSkills: {
-            hasSome: hiringNeeds, // At least one skill matches
+          is: {
+            selectedSkills: {
+              hasSome: hiringNeeds,
+            },
           },
         },
       },
