@@ -9,6 +9,7 @@ interface HirerOnboardingData {
   companyDescription?: string;
   companySize?: string;
   industry?: string;
+  positionTypes?: string[];
   hiringNeeds?: string[];
   typicalBudgetMin?: number;
   typicalBudgetMax?: number;
@@ -53,7 +54,7 @@ export function CompanyInfo({ companyName, companyDescription, onUpdate }: Compa
           className="min-h-32 resize-none"
         />
         <p className="text-sm text-muted-foreground">
-          A brief description of your company helps freelancers understand your business
+          A brief description of your company helps candidates understand your business
         </p>
       </div>
     </div>

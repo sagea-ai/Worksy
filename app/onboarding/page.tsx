@@ -15,6 +15,7 @@ import { RatePreferences } from '@/components/onboarding/RatePreferences';
 import { UserTypeSelection } from '@/components/onboarding/UserTypeSelection';
 import { CompanyInfo } from '@/components/onboarding/CompanyInfo';
 import { CompanyDetails } from '@/components/onboarding/CompanyDetails';
+import { PositionTypes } from '@/components/onboarding/PositionTypes';
 import { HiringNeeds } from '@/components/onboarding/HiringNeeds';
 import { HirerBudgetPreferences } from '@/components/onboarding/HirerBudgetPreferences';
 import { OnboardingLayout } from '@/components/onboarding/OnboardingLayout';
@@ -42,6 +43,7 @@ export interface OnboardingData {
   companyDescription?: string;
   companySize?: string;
   industry?: string;
+  positionTypes?: string[];
   hiringNeeds?: string[];
   typicalBudgetMin?: number;
   typicalBudgetMax?: number;
@@ -59,6 +61,7 @@ const STUDENT_STEPS = [
 const HIRER_STEPS = [
   { id: 'company-info', title: 'Tell us about your company', subtitle: 'Help us understand your business.' },
   { id: 'company-details', title: 'Company size and industry', subtitle: 'This helps us personalize your experience.' },
+  { id: 'position-types', title: 'What types of positions do you post?', subtitle: 'Select the types of opportunities you offer.' },
   { id: 'hiring-needs', title: 'What do you hire for?', subtitle: 'Select the skills and expertise you typically look for.' },
   { id: 'budget-preferences', title: 'Budget and project preferences', subtitle: 'Set your typical budget range and work preferences.' },
 ];
@@ -98,6 +101,7 @@ function OnboardingPageContent() {
     companyDescription: '',
     companySize: '',
     industry: '',
+    positionTypes: [],
     hiringNeeds: [],
     typicalBudgetMin: 0,
     typicalBudgetMax: 0,
@@ -193,8 +197,9 @@ function OnboardingPageContent() {
       switch (currentStep) {
         case 0: return !!onboardingData.companyName;
         case 1: return !!onboardingData.companySize && !!onboardingData.industry;
-        case 2: return onboardingData.hiringNeeds && onboardingData.hiringNeeds.length > 0;
-        case 3: return !!onboardingData.typicalBudgetMin && !!onboardingData.typicalBudgetMax && !!onboardingData.typicalProjectDuration && onboardingData.preferredRemote !== undefined;
+        case 2: return onboardingData.positionTypes && onboardingData.positionTypes.length > 0;
+        case 3: return onboardingData.hiringNeeds && onboardingData.hiringNeeds.length > 0;
+        case 4: return !!onboardingData.typicalBudgetMin && !!onboardingData.typicalBudgetMax && !!onboardingData.typicalProjectDuration && onboardingData.preferredRemote !== undefined;
         default: return false;
       }
     }
@@ -319,12 +324,18 @@ function OnboardingPageContent() {
               />
             )}
             {currentStep === 2 && (
+              <PositionTypes
+                positionTypes={onboardingData.positionTypes || []}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+            {currentStep === 3 && (
               <HiringNeeds
                 hiringNeeds={onboardingData.hiringNeeds || []}
                 onUpdate={updateOnboardingData}
               />
             )}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <HirerBudgetPreferences
                 typicalBudgetMin={onboardingData.typicalBudgetMin || 0}
                 typicalBudgetMax={onboardingData.typicalBudgetMax || 0}

@@ -10,6 +10,7 @@ interface HirerOnboardingData {
   companyDescription?: string;
   companySize?: string;
   industry?: string;
+  positionTypes?: string[];
   hiringNeeds?: string[];
   typicalBudgetMin?: number;
   typicalBudgetMax?: number;
@@ -45,9 +46,9 @@ export function HirerBudgetPreferences({
       {/* Budget Range */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base mb-4 block">Typical Project Budget Range</Label>
+          <Label className="text-base mb-4 block">Typical Budget/Compensation Range</Label>
           <p className="text-sm text-muted-foreground mb-4">
-            What budget range do you typically work with for projects?
+            What budget or compensation range do you typically work with? (Projects for freelancers, stipends/salary for internships and jobs)
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -118,7 +119,7 @@ export function HirerBudgetPreferences({
                   <div>
                     <CardTitle className="text-lg">On-site</CardTitle>
                     <CardDescription>
-                      Prefer freelancers to work on-site
+                      Prefer candidates to work on-site
                     </CardDescription>
                   </div>
                 </div>
@@ -131,9 +132,9 @@ export function HirerBudgetPreferences({
       {/* Project Duration */}
       <div className="space-y-4">
         <div>
-          <Label className="text-base mb-4 block">Typical Project Duration</Label>
+          <Label className="text-base mb-4 block">Typical Position Duration</Label>
           <p className="text-sm text-muted-foreground mb-4">
-            How long do your projects typically last?
+            How long do your positions typically last? (For internships and jobs, this refers to contract length)
           </p>
         </div>
         <RadioGroup

@@ -75,6 +75,7 @@ model UserProfile {
   companySize        String?
   industry           String?
   companyDescription String?
+  positionTypes      String[] // Types of positions: freelancers, internships, jobs
   hiringNeeds        String[] // Skills/areas they hire for
   typicalBudgetMin   Float?
   typicalBudgetMax   Float?

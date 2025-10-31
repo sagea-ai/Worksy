@@ -15,6 +15,7 @@ interface HirerOnboardingData {
   companyDescription?: string;
   companySize?: string;
   industry?: string;
+  positionTypes?: string[];
   hiringNeeds?: string[];
   typicalBudgetMin?: number;
   typicalBudgetMax?: number;
