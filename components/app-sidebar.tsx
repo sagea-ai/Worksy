@@ -39,11 +39,6 @@ const navItems = [
     icon: IconUser,
   },
   {
-    title: "Jobs",
-    url: "/jobs",
-    icon: IconCloudDataConnection,
-  },
-  {
     title: "Deals",
     url: "/deals",
     icon: IconBusinessplan,
