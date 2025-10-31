@@ -39,6 +39,11 @@ const navItems = [
     icon: IconUser,
   },
   {
+    title: "Jobs",
+    url: "/jobs",
+    icon: IconCloudDataConnection,
+  },
+  {
     title: "Deals",
     url: "/deals",
     icon: IconBusinessplan,
@@ -47,23 +52,6 @@ const navItems = [
     title: "Proposals",
     url: "/proposals",
     icon: IconFileText,
-  },
-  {
-    title: "AppDesk",
-    url: "https://appdesk.in",
-    icon: IconExternalLink,
-    external: true,
-  },
-  {
-    title: "Clone AI",
-    url: "/clone",
-    icon: IconCloudDataConnection,
-  },
-  {
-    title: "Events",
-    url: "/events",
-    icon: IconCalendar,
-    comingSoon: true,
   },
   {
     title: "Teams",
@@ -106,8 +94,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link href="/dashboard">
-                <IconRobot className="!size-5 text-primary" />
-                <span className="text-base font-semibold">Gigstar AI</span>
+                {/* change the icon to a logo representing "Worksy" */}
+                <IconRobot className="size-5 text-primary" />
+                <span className="text-base font-semibold">Worksy</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
