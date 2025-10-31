@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Worksy Platform",
-  description: "created by next app",
+  title: "GigStar AI - Your AI-Powered Platform",
+  description: "Transform your business with cutting-edge AI solutions",
 };
 
 export default function RootLayout({

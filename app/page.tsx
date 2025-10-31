@@ -7,6 +7,7 @@ import { Features } from "@/components/landing/Features";
 import { Services } from "@/components/landing/Services";
 import { Cta } from "@/components/landing/Cta";
 import { Testimonials } from "@/components/landing/Testimonials";
+import { Team } from "@/components/landing/Team";
 import { Pricing } from "@/components/landing/Pricing";
 import { Newsletter } from "@/components/landing/Newsletter";
 import { FAQ } from "@/components/landing/FAQ";
