@@ -174,7 +174,7 @@ export function RatePreferences({
 
       {/* Summary */}
       {minRate && maxRate && availability && (
-        <div className="p-6 bg-muted/30 rounded-lg border">
+        <div className="p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
           <h3 className="font-semibold text-primary mb-2">🎯 Your Freelance Profile</h3>
           <div className="space-y-1 text-sm">
             <p><strong>Rate Range:</strong> ${minRate} - ${maxRate} per hour</p>
