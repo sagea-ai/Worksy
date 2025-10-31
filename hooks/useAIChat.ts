@@ -10,7 +10,7 @@ export function useAIChat() {
     async (
       content: string,
       provider: AIProvider["name"] = "openai",
-      model: string = "gpt-4"
+      model: string = "gpt-4o-mini"
     ) => {
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
@@ -24,31 +24,30 @@ export function useAIChat() {
       setError(null);
 
       try {
-        // TODO: Implement proper chat API endpoint
-        // const response = await fetch('/api/oploven/chat', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-        //     messages: [...messages, userMessage].map(msg => ({
-        //       role: msg.role,
-        //       content: msg.content,
-        //     })),
-        //     provider,
-        //     model,
-        //   }),
-        // });
+        const response = await fetch('/api/sage/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [...messages, userMessage].map(msg => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+            provider,
+            model,
+          }),
+        });
 
-        // if (!response.ok) {
-        //   throw new Error('Failed to send message');
-        // }
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(errText || 'Failed to send message');
+        }
 
-        // const data = await response.json();
+        const data = await response.json();
 
-        // Temporary mock response until proper API is implemented
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "Chat functionality is currently under development.",
+          content: data.reply || "",
           timestamp: new Date(),
         };
 
