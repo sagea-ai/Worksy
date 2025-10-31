@@ -21,7 +21,7 @@ export const anthropic = createAnthropic({
 });
 
 export const openai = createOpenAI({
-  apiKey: process.env.AI_GATEWAY_API_KEY ?? process.env.OPENAI_API_KEY,
+  apiKey: process.env.AI_GATEWAY_API_KEY ?? process.env.SAGEA_API_KEY,
   baseURL: isUsingAIGateway ? aiGatewayBaseURL : process.env.OPENAI_BASE_URL,
 });
 
