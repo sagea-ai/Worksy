@@ -40,7 +40,7 @@ export function OnboardingLayout({
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-bold">
                 <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
-                  Gigstar AI
+                  Worksy
                 </span>
               </h1>
             </div>

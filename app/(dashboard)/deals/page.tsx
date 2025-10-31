@@ -29,6 +29,7 @@ import {
 } from '@tabler/icons-react'
 import { LoadingScreen } from "@/components/ui/loading-screen"
 import { toast } from "sonner"
+import { EnhancedChat } from "@/components/jobs/EnhancedChat"
 
 interface JobAnalysis {
   marketAnalysis?: {
@@ -172,6 +173,7 @@ export default function DealsPage() {
   const [availableTeams, setAvailableTeams] = useState<any[]>([])
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
   const [loadingTeamSelection, setLoadingTeamSelection] = useState(false)
+  const [useEnhancedChat, setUseEnhancedChat] = useState(true) // Toggle for enhanced chat
   const [systemPrompt, setSystemPrompt] = useState(`You are Worksy, an expert freelancer assistant that helps analyze projects and create detailed building plans. 
 
 When analyzing projects:
@@ -2696,9 +2698,58 @@ Always be helpful, professional, and provide practical recommendations that help
 
               {/* Content Area - Fixed Container */}
               <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
-                {/* Messages Area - Only This Scrolls */}
-                <div className="flex-1 overflow-y-auto overscroll-behavior-contain">
-                  <div className="p-3 lg:p-4 space-y-3 lg:space-y-4 pb-safe">
+                {/* Floating Toggle Button */}
+                <div className="absolute top-4 right-4 z-10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setUseEnhancedChat(!useEnhancedChat)}
+                    className="shadow-lg bg-background/95 border-border hover:bg-muted/80 hover:text-foreground backdrop-blur-sm transition-all duration-200 hover:shadow-xl"
+                  >
+                    {useEnhancedChat ? '📊 Legacy Chat' : '✨ Enhanced Chat'}
+                  </Button>
+                </div>
+
+                {useEnhancedChat && selectedJob ? (
+                  <EnhancedChat
+                    job={{
+                      id: selectedJob.internalJobId || selectedJob.id.toString(),
+                      title: selectedJob.title,
+                      description: selectedJob.description,
+                      skills: selectedJob.skills || [],
+                      budget: selectedJob.price,
+                      currency: selectedJob.currency,
+                    }}
+                    onDecision={async (decision, reason) => {
+                      console.log('User decision:', decision, reason);
+                      toast.success(decision === 'ACCEPTED' ? 'Job accepted!' : 'Job rejected');
+                      // Update job state if needed
+                      if (selectedJob.internalJobId) {
+                        try {
+                          await fetch('/api/jobs/manage', {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              jobId: selectedJob.internalJobId,
+                              state: decision === 'ACCEPTED' ? 'PROPOSING' : 'DECLINED',
+                            }),
+                          });
+                        } catch (error) {
+                          console.error('Error updating job state:', error);
+                        }
+                      }
+                    }}
+                    onPropose={async (pitch) => {
+                      console.log('Pitch to propose:', pitch);
+                      toast.success('Pitch generated! Ready to submit.');
+                      // You can integrate with your proposal submission logic here
+                    }}
+                  />
+                ) : (
+                  <>
+                    {/* Messages Area - Only This Scrolls */}
+                    <div className="flex-1 overflow-y-auto overscroll-behavior-contain">
+                      <div className="p-3 lg:p-4 space-y-3 lg:space-y-4 pb-safe">
                     {/* Chat Messages in chronological order */}
                     {chatMessages
                       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
@@ -2880,22 +2931,22 @@ Always be helpful, professional, and provide practical recommendations that help
                         )
                       )}
 
-                  </div>
-                </div>
+                      </div>
+                    </div>
 
-                {/* Floating Edit System Prompt Button */}
-                <div className="absolute bottom-20 right-4 z-10">
-                  <Dialog open={systemPromptDialogOpen} onOpenChange={setSystemPromptDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="shadow-lg bg-background/95 border-border hover:bg-muted/80 hover:text-foreground backdrop-blur-sm transition-all duration-200 hover:shadow-xl"
-                      >
-                        <IconSettings className="h-4 w-4 mr-2" />
-                        Edit System Prompt
-                      </Button>
-                    </DialogTrigger>
+                        {/* Floating Edit System Prompt Button */}
+                    <div className="absolute bottom-20 right-4 z-10">
+                      <Dialog open={systemPromptDialogOpen} onOpenChange={setSystemPromptDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="shadow-lg bg-background/95 border-border hover:bg-muted/80 hover:text-foreground backdrop-blur-sm transition-all duration-200 hover:shadow-xl"
+                          >
+                            <IconSettings className="h-4 w-4 mr-2" />
+                            Edit System Prompt
+                          </Button>
+                        </DialogTrigger>
                     <DialogContent className="sm:max-w-[600px]">
                       <DialogHeader>
                         <DialogTitle>Edit System Prompt</DialogTitle>
@@ -2958,35 +3009,37 @@ Always be helpful, professional, and provide practical recommendations that help
                         >
                           Save Changes
                         </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                {/* Chat Input Area - Fixed */}
-                <div className="flex-shrink-0 border-t border-border bg-card p-3 lg:p-4 safe-area-inset-bottom">
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1">
-                      <Input
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Type a message..."
-                        className="h-10 lg:h-11 text-sm border-0 bg-muted/30 focus:bg-background transition-colors"
-                        disabled={analyzingJob || generatingSteps}
-                      />
-                    </div>
-                    <Button 
-                      onClick={handleSendMessage}
-                      disabled={!message.trim() || analyzingJob || generatingSteps}
-                      className="h-10 lg:h-11 px-3 lg:px-4 flex-shrink-0 rounded-full"
-                      size="sm"
-                    >
-                      <IconSend className="h-4 w-4" />
-                      <span className="hidden lg:inline ml-2">Send</span>
-                    </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                </div>
+
+                  {/* Chat Input Area - Fixed */}
+                  <div className="flex-shrink-0 border-t border-border bg-card p-3 lg:p-4 safe-area-inset-bottom">
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <Input
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                          placeholder="Type a message..."
+                          className="h-10 lg:h-11 text-sm border-0 bg-muted/30 focus:bg-background transition-colors"
+                          disabled={analyzingJob || generatingSteps}
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleSendMessage}
+                        disabled={!message.trim() || analyzingJob || generatingSteps}
+                        className="h-10 lg:h-11 px-3 lg:px-4 flex-shrink-0 rounded-full"
+                        size="sm"
+                      >
+                        <IconSend className="h-4 w-4" />
+                        <span className="hidden lg:inline ml-2">Send</span>
+                      </Button>
+                    </div>
+                  </div>
+                  </>
+                )}
               </div>
             </>
           ) : (
