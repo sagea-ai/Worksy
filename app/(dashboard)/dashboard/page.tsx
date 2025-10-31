@@ -40,11 +40,27 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userType, setUserType] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const checkUserTypeAndFetch = async () => {
       try {
         setLoading(true);
+        
+        // First check user type
+        const profileResponse = await fetch('/api/profile');
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          setUserType(profileData.userType);
+          
+          // If hirer, redirect to hirer dashboard
+          if (profileData.userType === 'HIRER') {
+            window.location.href = '/dashboard/hirer';
+            return;
+          }
+        }
+        
+        // Fetch student dashboard data
         const response = await fetch('/api/dashboard/stats');
         
         if (!response.ok) {
@@ -61,7 +77,7 @@ export default function DashboardPage() {
       }
     };
 
-    fetchDashboardData();
+    checkUserTypeAndFetch();
   }, []);
 
   if (loading) {

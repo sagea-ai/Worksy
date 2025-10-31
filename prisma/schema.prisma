@@ -33,6 +33,7 @@ model User {
   profile             UserProfile?
 
   jobs Job[]
+  jobPostings         JobPosting[]
 
   createdTeams        Team[]           @relation("TeamCreator")
   teamMemberships     TeamMember[]     @relation("TeamMemberships")
@@ -293,4 +294,62 @@ enum ActivityType {
   PROJECT_STARTED
   PROJECT_COMPLETED
   TEAM_CREATED
+}
+
+enum PositionType {
+  FREELANCER
+  INTERNSHIP
+  JOB
+}
+
+enum JobPostingStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  EXPIRED
+}
+
+model JobPosting {
+  id          String   @id @default(cuid())
+  
+  // Basic info
+  title       String
+  description String
+  positionType PositionType // FREELANCER, INTERNSHIP, or JOB
+  
+  // Requirements
+  requiredSkills String[]
+  preferredExperience ExperienceLevel?
+  
+  // Compensation
+  budgetMin   Float?
+  budgetMax   Float?
+  currency    String  @default("USD")
+  isNegotiable Boolean @default(true)
+  
+  // Location & remote
+  location    String?
+  isRemote    Boolean @default(true)
+  
+  // Duration
+  duration    String? // e.g., "3 months", "Full-time", "Part-time"
+  
+  // Status
+  status      JobPostingStatus @default(DRAFT)
+  isPublic    Boolean @default(true)
+  
+  // Relations
+  postedBy    String
+  poster      User    @relation(fields: [postedBy], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  viewCount   Int     @default(0)
+  applicationCount Int @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+  expiresAt   DateTime?
+
+  @@map("job_postings")
 }
