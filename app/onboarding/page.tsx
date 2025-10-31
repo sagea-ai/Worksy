@@ -12,6 +12,11 @@ import { SkillSelection } from '@/components/onboarding/SkillSelection';
 import { ExperienceLevel } from '@/components/onboarding/ExperienceLevel';
 import { PlatformPreferences } from '@/components/onboarding/PlatformPreferences';
 import { RatePreferences } from '@/components/onboarding/RatePreferences';
+import { UserTypeSelection } from '@/components/onboarding/UserTypeSelection';
+import { CompanyInfo } from '@/components/onboarding/CompanyInfo';
+import { CompanyDetails } from '@/components/onboarding/CompanyDetails';
+import { HiringNeeds } from '@/components/onboarding/HiringNeeds';
+import { HirerBudgetPreferences } from '@/components/onboarding/HirerBudgetPreferences';
 import { OnboardingLayout } from '@/components/onboarding/OnboardingLayout';
 import { initiateFreelancerOAuth, isFreelancerOAuthConfigured } from '@/lib/freelancer-oauth';
 import {
@@ -24,19 +29,38 @@ import {
 } from '@tabler/icons-react';
 
 export interface OnboardingData {
+  userType: "STUDENT" | "HIRER" | "";
+  // Student fields
   selectedSkills: string[];
   experienceLevel: string;
   preferredPlatforms: string[];
   hourlyRateMin: number;
   hourlyRateMax: number;
   availability: string;
+  // Hirer fields
+  companyName?: string;
+  companyDescription?: string;
+  companySize?: string;
+  industry?: string;
+  hiringNeeds?: string[];
+  typicalBudgetMin?: number;
+  typicalBudgetMax?: number;
+  preferredRemote?: boolean;
+  typicalProjectDuration?: string;
 }
 
-const STEPS = [
+const STUDENT_STEPS = [
   { id: 'skills', title: 'Tell us your top skills', subtitle: 'This helps us recommend jobs for you.' },
   { id: 'experience', title: 'What\'s your experience level?', subtitle: 'This helps us match you with appropriate projects.' },
   { id: 'platforms', title: 'Which platforms do you use?', subtitle: 'We\'ll focus on these platforms for automation.' },
   { id: 'rates', title: 'Set your rate preferences', subtitle: 'This helps us bid within your desired range.' },
+];
+
+const HIRER_STEPS = [
+  { id: 'company-info', title: 'Tell us about your company', subtitle: 'Help us understand your business.' },
+  { id: 'company-details', title: 'Company size and industry', subtitle: 'This helps us personalize your experience.' },
+  { id: 'hiring-needs', title: 'What do you hire for?', subtitle: 'Select the skills and expertise you typically look for.' },
+  { id: 'budget-preferences', title: 'Budget and project preferences', subtitle: 'Set your typical budget range and work preferences.' },
 ];
 
 export default function OnboardingPage() {
@@ -57,17 +81,28 @@ function OnboardingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showManualForm, setShowManualForm] = useState(false);
+  const [userTypeSelected, setUserTypeSelected] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isPageReady, setIsPageReady] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    userType: "",
     selectedSkills: [],
     experienceLevel: '',
     preferredPlatforms: [],
     hourlyRateMin: 0,
     hourlyRateMax: 0,
     availability: '',
+    companyName: '',
+    companyDescription: '',
+    companySize: '',
+    industry: '',
+    hiringNeeds: [],
+    typicalBudgetMin: 0,
+    typicalBudgetMax: 0,
+    preferredRemote: undefined,
+    typicalProjectDuration: '',
   });
 
   useEffect(() => {
@@ -111,29 +146,60 @@ function OnboardingPageContent() {
     setOnboardingData(prev => ({ ...prev, ...updates }));
   }, []);
 
+  const handleUserTypeSelect = useCallback((type: "STUDENT" | "HIRER") => {
+    updateOnboardingData({ userType: type });
+    setUserTypeSelected(true);
+    setShowManualForm(true);
+    setCurrentStep(0);
+  }, [updateOnboardingData]);
+
+  const getCurrentSteps = useCallback(() => {
+    if (onboardingData.userType === "STUDENT") return STUDENT_STEPS;
+    if (onboardingData.userType === "HIRER") return HIRER_STEPS;
+    return [];
+  }, [onboardingData.userType]);
+
   const handleNext = useCallback(() => {
-    if (currentStep < STEPS.length - 1) {
+    const steps = getCurrentSteps();
+    if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
       handleSubmit();
     }
-  }, [currentStep]);
+  }, [currentStep, getCurrentSteps]);
 
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
+    } else if (userTypeSelected) {
+      // Go back to user type selection
+      setUserTypeSelected(false);
+      setShowManualForm(false);
+      updateOnboardingData({ userType: "" });
     }
-  }, [currentStep]);
+  }, [currentStep, userTypeSelected, updateOnboardingData]);
 
   const isStepValid = useCallback(() => {
-    switch (currentStep) {
-      case 0: return onboardingData.selectedSkills.length > 0;
-      case 1: return !!onboardingData.experienceLevel;
-      case 2: return onboardingData.preferredPlatforms.length > 0;
-      case 3: return !!onboardingData.hourlyRateMin && !!onboardingData.hourlyRateMax && !!onboardingData.availability;
-      default: return false;
+    const steps = getCurrentSteps();
+    if (onboardingData.userType === "STUDENT") {
+      switch (currentStep) {
+        case 0: return onboardingData.selectedSkills.length > 0;
+        case 1: return !!onboardingData.experienceLevel;
+        case 2: return onboardingData.preferredPlatforms.length > 0;
+        case 3: return !!onboardingData.hourlyRateMin && !!onboardingData.hourlyRateMax && !!onboardingData.availability;
+        default: return false;
+      }
+    } else if (onboardingData.userType === "HIRER") {
+      switch (currentStep) {
+        case 0: return !!onboardingData.companyName;
+        case 1: return !!onboardingData.companySize && !!onboardingData.industry;
+        case 2: return onboardingData.hiringNeeds && onboardingData.hiringNeeds.length > 0;
+        case 3: return !!onboardingData.typicalBudgetMin && !!onboardingData.typicalBudgetMax && !!onboardingData.typicalProjectDuration && onboardingData.preferredRemote !== undefined;
+        default: return false;
+      }
     }
-  }, [currentStep, onboardingData]);
+    return false;
+  }, [currentStep, onboardingData, getCurrentSteps]);
 
   const handleSubmit = useCallback(async () => {
     setIsLoading(true);
@@ -173,45 +239,101 @@ function OnboardingPageContent() {
     );
   }
 
+  // Show user type selection if not selected yet
+  if (!userTypeSelected && !showManualForm) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-4xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome to Worksy</h1>
+            <p className="text-lg text-muted-foreground">Let's get started - choose how you'd like to use our platform</p>
+          </div>
+          <UserTypeSelection
+            selectedType={onboardingData.userType as "STUDENT" | "HIRER" | ""}
+            onSelect={handleUserTypeSelect}
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Show manual onboarding form
-  if (showManualForm) {
+  if (showManualForm && userTypeSelected) {
+    const steps = getCurrentSteps();
     return (
       <OnboardingLayout
         currentStep={currentStep}
-        totalSteps={STEPS.length}
-        title={STEPS[currentStep].title}
-        subtitle={STEPS[currentStep].subtitle}
+        totalSteps={steps.length}
+        title={steps[currentStep].title}
+        subtitle={steps[currentStep].subtitle}
         isLoading={isLoading}
         onNext={handleNext}
         onBack={handleBack}
-        canProceed={isStepValid()}
-        isLastStep={currentStep === STEPS.length - 1}
+        canProceed={Boolean(isStepValid())}
+        isLastStep={currentStep === steps.length - 1}
       >
-        {currentStep === 0 && (
-          <SkillSelection
-            selectedSkills={onboardingData.selectedSkills}
-            onUpdate={updateOnboardingData}
-          />
+        {onboardingData.userType === "STUDENT" && (
+          <>
+            {currentStep === 0 && (
+              <SkillSelection
+                selectedSkills={onboardingData.selectedSkills}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+            {currentStep === 1 && (
+              <ExperienceLevel
+                selectedLevel={onboardingData.experienceLevel}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+            {currentStep === 2 && (
+              <PlatformPreferences
+                selectedPlatforms={onboardingData.preferredPlatforms}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+            {currentStep === 3 && (
+              <RatePreferences
+                hourlyRateMin={onboardingData.hourlyRateMin}
+                hourlyRateMax={onboardingData.hourlyRateMax}
+                availability={onboardingData.availability}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+          </>
         )}
-        {currentStep === 1 && (
-          <ExperienceLevel
-            selectedLevel={onboardingData.experienceLevel}
-            onUpdate={updateOnboardingData}
-          />
-        )}
-        {currentStep === 2 && (
-          <PlatformPreferences
-            selectedPlatforms={onboardingData.preferredPlatforms}
-            onUpdate={updateOnboardingData}
-          />
-        )}
-        {currentStep === 3 && (
-          <RatePreferences
-            hourlyRateMin={onboardingData.hourlyRateMin}
-            hourlyRateMax={onboardingData.hourlyRateMax}
-            availability={onboardingData.availability}
-            onUpdate={updateOnboardingData}
-          />
+        {onboardingData.userType === "HIRER" && (
+          <>
+            {currentStep === 0 && (
+              <CompanyInfo
+                companyName={onboardingData.companyName || ''}
+                companyDescription={onboardingData.companyDescription || ''}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+            {currentStep === 1 && (
+              <CompanyDetails
+                companySize={onboardingData.companySize || ''}
+                industry={onboardingData.industry || ''}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+            {currentStep === 2 && (
+              <HiringNeeds
+                hiringNeeds={onboardingData.hiringNeeds || []}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+            {currentStep === 3 && (
+              <HirerBudgetPreferences
+                typicalBudgetMin={onboardingData.typicalBudgetMin || 0}
+                typicalBudgetMax={onboardingData.typicalBudgetMax || 0}
+                preferredRemote={onboardingData.preferredRemote}
+                typicalProjectDuration={onboardingData.typicalProjectDuration || ''}
+                onUpdate={updateOnboardingData}
+              />
+            )}
+          </>
         )}
       </OnboardingLayout>
     );
@@ -219,13 +341,13 @@ function OnboardingPageContent() {
 
   // Show initial choice screen
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md shadow-xl border-0 bg-card/95 backdrop-blur-sm">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <IconRocket className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome to Worksy! 🚀</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome to Worksy</CardTitle>
           <CardDescription className="text-base">
             Let's get you set up in seconds and start winning projects
           </CardDescription>
@@ -243,14 +365,14 @@ function OnboardingPageContent() {
           {isFreelancerOAuthConfigured() && (
             <Button 
               onClick={handleFreelancerConnect}
-              className="w-full h-14 text-left flex items-center gap-3 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-200"
+              className="w-full h-14 text-left flex items-center gap-3 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200"
               size="lg"
             >
               <div className="flex-1">
-                <div className="font-semibold text-white">Connect Freelancer Account</div>
-                <div className="text-xs text-white/80">Auto-fill profile & sync your work history</div>
+                <div className="font-semibold">Connect Freelancer Account</div>
+                <div className="text-xs opacity-80">Auto-fill profile & sync your work history</div>
               </div>
-              <IconExternalLink className="h-4 w-4 text-white/80" />
+              <IconExternalLink className="h-4 w-4 opacity-80" />
             </Button>
           )}
           

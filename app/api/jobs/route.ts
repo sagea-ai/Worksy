@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get("query") || "";
 
   try {
-    const accessToken = process.env.GIGSTAR_ACCESS_TOKEN;
+    const accessToken = process.env.WORKSY_ACCESS_TOKEN;
 
     if (!accessToken) {
       return NextResponse.json(

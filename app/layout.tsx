@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Worksy - Your AI-Powered Platform",
-  description: "Transform your business with cutting-edge AI solutions",
+
+  title: "Worksy - Find work that fits",
+  description: "Worksy helps students and fresh graduates in Nepal find jobs and internships that match their skills. Discover opportunities, assess your strengths, and get personalized career guidance to build real experience",
 };
 
 export default function RootLayout({
