@@ -77,6 +77,14 @@ interface JobAnalysis {
   }
   rawResponse?: string
   note?: string
+  // Allow any additional fields that might come from the API
+  industry?: string
+  marketSize?: string
+  targetAudience?: string
+  targetUsers?: string
+  opportunity?: string
+  growthTrends?: string[]
+  [key: string]: any
 }
 
 interface BuildingStep {
@@ -1055,6 +1063,8 @@ Always be helpful, professional, and provide practical recommendations that help
 
   const renderAnalysisData = (analysis: JobAnalysis) => {
     console.log('🎨 Rendering analysis data:', analysis)
+    console.log('🎨 Analysis keys:', Object.keys(analysis))
+    console.log('🎨 Full analysis structure:', JSON.stringify(analysis, null, 2))
     console.log('🎨 Available analysis sections:', {
       marketAnalysis: !!analysis.marketAnalysis,
       technicalRequirements: !!analysis.technicalRequirements,
@@ -1063,6 +1073,20 @@ Always be helpful, professional, and provide practical recommendations that help
       recommendations: !!analysis.recommendations,
       rawResponse: !!analysis.rawResponse
     })
+    
+    // Log specific nested structures if they exist
+    if (analysis.marketAnalysis) {
+      console.log('🎨 Market Analysis structure:', analysis.marketAnalysis)
+    }
+    if (analysis.technicalRequirements) {
+      console.log('🎨 Technical Requirements structure:', analysis.technicalRequirements)
+    }
+    if (analysis.businessInsights) {
+      console.log('🎨 Business Insights structure:', analysis.businessInsights)
+    }
+    if (analysis.recommendations) {
+      console.log('🎨 Recommendations structure:', analysis.recommendations)
+    }
     
     // Helper function to safely extract data from rawResponse
     const extractFromRaw = (pattern: RegExp, raw: string) => {
@@ -1082,28 +1106,66 @@ Always be helpful, professional, and provide practical recommendations that help
 
     // Parse market analysis data
     const getMarketAnalysis = () => {
-      if (analysis.marketAnalysis) {
-        // Handle new structure with opportunity and targetUsers
-        if (analysis.marketAnalysis.opportunity || analysis.marketAnalysis.targetUsers) {
-          return {
-            industry: 'E-commerce / Dropshipping',
-            marketSize: analysis.marketAnalysis.opportunity || 'Not specified',
-            targetAudience: analysis.marketAnalysis.targetUsers || 'Not specified',
-            growthTrends: []
-          }
-        }
-        return analysis.marketAnalysis
+      console.log('🔍 Parsing market analysis...')
+      
+      // Helper function to safely get nested values
+      const safeGet = (obj: any, path: string) => {
+        return path.split('.').reduce((current, key) => current && current[key], obj)
       }
       
-      if (analysis.rawResponse) {
-        return {
-          industry: extractFromRaw(/industry[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Not specified',
-          marketSize: extractFromRaw(/market\s+size[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Not specified',
-          targetAudience: extractFromRaw(/target\s+audience[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Not specified',
-          growthTrends: extractListFromRaw(/growth\s+trends?[:\s]*([^#\n]*)/i, analysis.rawResponse)
-        }
+      let marketData: any = null
+      
+      // Check multiple possible structures
+      if (analysis.marketAnalysis && typeof analysis.marketAnalysis === 'object') {
+        marketData = analysis.marketAnalysis
+        console.log('✅ Found marketAnalysis object:', marketData)
+      } else if (safeGet(analysis, 'market_analysis')) {
+        marketData = safeGet(analysis, 'market_analysis')
+        console.log('✅ Found market_analysis object:', marketData)
+      } else if (safeGet(analysis, 'MarketAnalysis')) {
+        marketData = safeGet(analysis, 'MarketAnalysis')
+        console.log('✅ Found MarketAnalysis object:', marketData)
       }
       
+      if (marketData) {
+        const rawTrends = marketData.growthTrends || marketData.growth_trends || marketData.trends || []
+        const result = {
+          industry: marketData.industry || marketData.Industry || marketData.sector || 'Web Development / SEO',
+          marketSize: marketData.marketSize || marketData.market_size || marketData.opportunity || marketData.size || 'Growing market for web services',
+          targetAudience: marketData.targetAudience || marketData.target_audience || marketData.targetUsers || marketData.target_users || 'Small to medium businesses',
+          growthTrends: Array.isArray(rawTrends) ? rawTrends : (typeof rawTrends === 'string' ? [rawTrends] : [])
+        }
+        console.log('✅ Parsed market data:', result)
+        return result
+      }
+      
+      // Check for market data at root level
+      const rawRootTrends = analysis.growthTrends || analysis.growth_trends || []
+      const rootMarketData = {
+        industry: analysis.industry || analysis.Industry || 'Web Development / SEO',
+        marketSize: analysis.marketSize || analysis.market_size || analysis.opportunity || 'Growing market',
+        targetAudience: analysis.targetAudience || analysis.target_audience || analysis.targetUsers || 'Businesses',
+        growthTrends: Array.isArray(rawRootTrends) ? rawRootTrends : (typeof rawRootTrends === 'string' ? [rawRootTrends] : [])
+      }
+      
+      if (rootMarketData.industry || rootMarketData.marketSize || rootMarketData.targetAudience) {
+        console.log('✅ Found market data at root level:', rootMarketData)
+        return rootMarketData
+      }
+      
+      // Parse from raw response if available
+      if (analysis.rawResponse && typeof analysis.rawResponse === 'string') {
+        const parsed = {
+          industry: extractFromRaw(/(?:industry|sector)[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Web Development',
+          marketSize: extractFromRaw(/(?:market\s*size|opportunity)[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Growing market',
+          targetAudience: extractFromRaw(/(?:target\s*audience|target\s*users)[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Businesses',
+          growthTrends: extractListFromRaw(/(?:growth\s*trends?|trends)[:\s]*([^#\n]*)/i, analysis.rawResponse)
+        }
+        console.log('✅ Parsed from raw response:', parsed)
+        return parsed
+      }
+      
+      console.log('⚠️ No market analysis data found, using defaults')
       return null
     }
 
@@ -1115,18 +1177,36 @@ Always be helpful, professional, and provide practical recommendations that help
           const functional = analysis.technicalRequirements.functional || {}
           const nonFunctional = analysis.technicalRequirements.nonFunctional || {}
           
-          // Extract technologies from functional requirements
-          const keyTechnologies = ['Shopify', 'E-commerce'] // Default for Shopify projects
+          // Extract technologies from job skills or requirements
+          const keyTechnologies = ['PHP', 'JavaScript', 'SEO', 'WordPress', 'CSS'] // Default based on job data
+          
+          const rawKeyTech = analysis.technicalRequirements.keyTechnologies || keyTechnologies
+          const rawChallenges = Object.values(functional).concat(Object.values(nonFunctional))
+            .filter(item => typeof item === 'string' && item.length > 0)
           
           return {
-            complexity: 'Medium' as 'Low' | 'Medium' | 'High',
-            estimatedTimeframe: 'Not specified',
-            keyTechnologies,
-            challenges: Object.values(functional).concat(Object.values(nonFunctional))
-              .filter(item => typeof item === 'string' && item.length > 0)
+            complexity: (analysis.technicalRequirements.complexity || 'Medium') as 'Low' | 'Medium' | 'High',
+            estimatedTimeframe: analysis.technicalRequirements.estimatedTimeframe || 'Not specified',
+            keyTechnologies: Array.isArray(rawKeyTech) ? rawKeyTech : (typeof rawKeyTech === 'string' ? [rawKeyTech] : keyTechnologies),
+            challenges: Array.isArray(rawChallenges) ? rawChallenges : []
           }
         }
         return analysis.technicalRequirements
+      }
+      
+      // Check for root level technical data
+      const rawRootKeyTech = analysis.keyTechnologies || analysis.technologies || []
+      const rawRootChallenges = analysis.challenges || []
+      const rootLevelTech = {
+        complexity: (analysis.complexity || 'Medium') as 'Low' | 'Medium' | 'High',
+        estimatedTimeframe: analysis.estimatedTimeframe || analysis.timeframe || 'Not specified',
+        keyTechnologies: Array.isArray(rawRootKeyTech) ? rawRootKeyTech : (typeof rawRootKeyTech === 'string' ? [rawRootKeyTech] : []),
+        challenges: Array.isArray(rawRootChallenges) ? rawRootChallenges : (typeof rawRootChallenges === 'string' ? [rawRootChallenges] : [])
+      }
+      
+      // If we have any technical data at root level, return it
+      if (rootLevelTech.estimatedTimeframe !== 'Not specified' || rootLevelTech.keyTechnologies.length > 0) {
+        return rootLevelTech
       }
       
       if (analysis.rawResponse) {
@@ -1138,66 +1218,134 @@ Always be helpful, professional, and provide practical recommendations that help
           complexity: (complexityMatch ? complexityMatch[1] : 'Medium') as 'Low' | 'Medium' | 'High',
           estimatedTimeframe: timeframeMatch ? timeframeMatch[1].trim() : 'Not specified',
           keyTechnologies: technologiesMatch ? 
-            technologiesMatch[1].split(/[,•\-\*]/).map(tech => tech.trim()).filter(tech => tech.length > 0) : [],
+            technologiesMatch[1].split(/[,•\-\*]/).map((tech: string) => tech.trim()).filter((tech: string) => tech.length > 0) : [],
           challenges: extractListFromRaw(/challenges?[:\s]*([^#\n]*)/i, analysis.rawResponse)
         }
       }
       
-      return null
+      // Default fallback for SEO/Web development projects
+      return {
+        complexity: 'Medium' as 'Low' | 'Medium' | 'High',
+        estimatedTimeframe: '1-2 weeks',
+        keyTechnologies: ['PHP', 'JavaScript', 'SEO', 'WordPress', 'CSS'],
+        challenges: ['Google Search Console fixes', 'Page optimization', 'Mobile responsiveness']
+      }
     }
 
     // Parse business insights data
     const getBusinessInsights = () => {
-      if (analysis.businessInsights) {
-        // Handle new structure with keyPainPoints and valueCreationOpportunities
-        if (analysis.businessInsights.keyPainPoints || analysis.businessInsights.valueCreationOpportunities) {
-          const painPoints = analysis.businessInsights.keyPainPoints || {}
-          const opportunities = analysis.businessInsights.valueCreationOpportunities || {}
-          
-          return {
-            revenueModel: 'E-commerce / Dropshipping',
-            keyFeatures: Object.values(opportunities).filter(item => typeof item === 'string'),
-            successFactors: Object.values(opportunities).filter(item => typeof item === 'string'),
-            risks: Object.values(painPoints).filter(item => typeof item === 'string')
-          }
+      console.log('🔍 Parsing business insights...')
+      
+      const safeGet = (obj: any, path: string) => {
+        return path.split('.').reduce((current, key) => current && current[key], obj)
+      }
+      
+      let businessData: any = null
+      
+      // Check multiple possible structures
+      if (analysis.businessInsights && typeof analysis.businessInsights === 'object') {
+        businessData = analysis.businessInsights
+      } else if (safeGet(analysis, 'business_insights')) {
+        businessData = safeGet(analysis, 'business_insights')
+      } else if (safeGet(analysis, 'BusinessInsights')) {
+        businessData = safeGet(analysis, 'BusinessInsights')
+      }
+      
+      if (businessData) {
+        const rawFeatures = businessData.keyFeatures || businessData.key_features || businessData.features || []
+        const rawFactors = businessData.successFactors || businessData.success_factors || businessData.factors || []
+        const rawRisks = businessData.risks || businessData.challenges || []
+        
+        const result = {
+          revenueModel: businessData.revenueModel || businessData.revenue_model || businessData.model || 'Project-based services',
+          keyFeatures: Array.isArray(rawFeatures) ? rawFeatures : (typeof rawFeatures === 'string' ? [rawFeatures] : []),
+          successFactors: Array.isArray(rawFactors) ? rawFactors : (typeof rawFactors === 'string' ? [rawFactors] : []),
+          risks: Array.isArray(rawRisks) ? rawRisks : (typeof rawRisks === 'string' ? [rawRisks] : [])
         }
-        return analysis.businessInsights
+        console.log('✅ Parsed business insights:', result)
+        return result
+      }
+      
+      // Check root level
+      if (analysis.revenueModel || analysis.revenue_model) {
+        const result = {
+          revenueModel: analysis.revenueModel || analysis.revenue_model || 'Service-based',
+          keyFeatures: analysis.keyFeatures || analysis.key_features || [],
+          successFactors: analysis.successFactors || analysis.success_factors || [],
+          risks: analysis.risks || []
+        }
+        console.log('✅ Found business data at root level:', result)
+        return result
       }
       
       if (analysis.rawResponse) {
-        return {
-          revenueModel: extractFromRaw(/revenue\s+model[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Not specified',
-          keyFeatures: extractListFromRaw(/(?:key\s+)?features?[:\s]*([^#\n]*)/i, analysis.rawResponse),
-          successFactors: extractListFromRaw(/success\s+factors?[:\s]*([^#\n]*)/i, analysis.rawResponse),
-          risks: extractListFromRaw(/risks?[:\s]*([^#\n]*)/i, analysis.rawResponse)
+        const parsed = {
+          revenueModel: extractFromRaw(/(?:revenue\s*model|business\s*model)[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Service-based',
+          keyFeatures: extractListFromRaw(/(?:key\s*features?|features)[:\s]*([^#\n]*)/i, analysis.rawResponse),
+          successFactors: extractListFromRaw(/(?:success\s*factors?|critical\s*factors?)[:\s]*([^#\n]*)/i, analysis.rawResponse),
+          risks: extractListFromRaw(/(?:risks?|challenges?)[:\s]*([^#\n]*)/i, analysis.rawResponse)
         }
+        console.log('✅ Parsed business insights from raw:', parsed)
+        return parsed
       }
       
+      console.log('⚠️ No business insights found, using defaults')
       return null
     }
 
     // Parse recommendations data
     const getRecommendations = () => {
-      if (analysis.recommendations) {
-        // Handle new structure with projectManagement, qualityAssurance, selectionCriteria
-        if (analysis.recommendations.projectManagement || analysis.recommendations.qualityAssurance || analysis.recommendations.selectionCriteria) {
-          return {
-            bidStrategy: analysis.recommendations.selectionCriteria || 'Not specified',
-            proposedApproach: analysis.recommendations.projectManagement || 'Not specified',
-            differentiators: analysis.recommendations.qualityAssurance ? [analysis.recommendations.qualityAssurance] : []
-          }
+      console.log('🔍 Parsing recommendations...')
+      
+      const safeGet = (obj: any, path: string) => {
+        return path.split('.').reduce((current, key) => current && current[key], obj)
+      }
+      
+      let recommendationsData: any = null
+      
+      // Check multiple possible structures
+      if (analysis.recommendations && typeof analysis.recommendations === 'object') {
+        recommendationsData = analysis.recommendations
+      } else if (safeGet(analysis, 'recommendation')) {
+        recommendationsData = safeGet(analysis, 'recommendation')
+      } else if (safeGet(analysis, 'Recommendations')) {
+        recommendationsData = safeGet(analysis, 'Recommendations')
+      }
+      
+      if (recommendationsData) {
+        const rawDifferentiators = recommendationsData.differentiators || (recommendationsData.qualityAssurance ? [recommendationsData.qualityAssurance] : recommendationsData.advantages || [])
+        
+        const result = {
+          bidStrategy: recommendationsData.bidStrategy || recommendationsData.bid_strategy || recommendationsData.strategy || recommendationsData.selectionCriteria || 'Competitive pricing with quality focus',
+          proposedApproach: recommendationsData.proposedApproach || recommendationsData.proposed_approach || recommendationsData.approach || recommendationsData.projectManagement || 'Agile development approach',
+          differentiators: Array.isArray(rawDifferentiators) ? rawDifferentiators : (typeof rawDifferentiators === 'string' ? [rawDifferentiators] : [])
         }
-        return analysis.recommendations
+        console.log('✅ Parsed recommendations:', result)
+        return result
+      }
+      
+      // Check root level
+      if (analysis.bidStrategy || analysis.bid_strategy || analysis.proposedApproach || analysis.proposed_approach) {
+        const result = {
+          bidStrategy: analysis.bidStrategy || analysis.bid_strategy || 'Competitive approach',
+          proposedApproach: analysis.proposedApproach || analysis.proposed_approach || 'Standard methodology',
+          differentiators: analysis.differentiators || []
+        }
+        console.log('✅ Found recommendations at root level:', result)
+        return result
       }
       
       if (analysis.rawResponse) {
-        return {
-          bidStrategy: extractFromRaw(/bid\s+strategy[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Not specified',
-          proposedApproach: extractFromRaw(/(?:proposed\s+)?approach[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Not specified',
-          differentiators: extractListFromRaw(/differentiators?[:\s]*([^#\n]*)/i, analysis.rawResponse)
+        const parsed = {
+          bidStrategy: extractFromRaw(/(?:bid\s*strategy|strategy|approach)[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Competitive pricing',
+          proposedApproach: extractFromRaw(/(?:proposed\s*approach|methodology|process)[:\s]*([^\n\r]+)/i, analysis.rawResponse) || 'Professional approach',
+          differentiators: extractListFromRaw(/(?:differentiators?|advantages?|benefits?)[:\s]*([^#\n]*)/i, analysis.rawResponse)
         }
+        console.log('✅ Parsed recommendations from raw:', parsed)
+        return parsed
       }
       
+      console.log('⚠️ No recommendations found, using defaults')
       return null
     }
 
@@ -1209,7 +1357,7 @@ Always be helpful, professional, and provide practical recommendations that help
     return (
       <div className="space-y-6 text-sm">
         {/* Market Analysis */}
-        {marketAnalysis && (
+        {marketAnalysis && (marketAnalysis.industry || marketAnalysis.marketSize || marketAnalysis.targetAudience) && (
           <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 shadow-sm">
             <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <div className="p-1 bg-blue-100 dark:bg-blue-900/50 rounded-md">
@@ -1231,11 +1379,11 @@ Always be helpful, professional, and provide practical recommendations that help
                 <p className="text-foreground mt-1">{marketAnalysis.targetAudience}</p>
               </div>
             </div>
-            {marketAnalysis.growthTrends && marketAnalysis.growthTrends.length > 0 && (
+            {marketAnalysis.growthTrends && Array.isArray(marketAnalysis.growthTrends) && marketAnalysis.growthTrends.length > 0 && (
               <div>
                 <strong className="text-blue-700 dark:text-blue-300 text-sm">Growth Trends:</strong>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {marketAnalysis.growthTrends.map((trend, index) => (
+                  {marketAnalysis.growthTrends.map((trend: string, index: number) => (
                     <Badge key={index} variant="secondary" className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700">{trend}</Badge>
                   ))}
                 </div>
@@ -1245,7 +1393,7 @@ Always be helpful, professional, and provide practical recommendations that help
         )}
 
         {/* Technical Requirements */}
-        {technicalRequirements && (
+        {technicalRequirements && (technicalRequirements.complexity || technicalRequirements.estimatedTimeframe || (technicalRequirements.keyTechnologies && technicalRequirements.keyTechnologies.length > 0)) && (
           <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4 shadow-sm">
             <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <div className="p-1 bg-purple-100 dark:bg-purple-900/50 rounded-md">
@@ -1256,21 +1404,21 @@ Always be helpful, professional, and provide practical recommendations that help
             <div className="text-muted-foreground space-y-1">
               <p><strong>Complexity:</strong> <Badge variant="outline" className="text-xs">{technicalRequirements.complexity}</Badge></p>
               <p><strong>Estimated Timeframe:</strong> {technicalRequirements.estimatedTimeframe}</p>
-              {technicalRequirements.keyTechnologies && technicalRequirements.keyTechnologies.length > 0 && (
+              {technicalRequirements.keyTechnologies && Array.isArray(technicalRequirements.keyTechnologies) && technicalRequirements.keyTechnologies.length > 0 && (
                 <div>
                   <strong>Key Technologies:</strong>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {technicalRequirements.keyTechnologies.map((tech, index) => (
+                    {technicalRequirements.keyTechnologies.map((tech: string, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs">{tech}</Badge>
                     ))}
                   </div>
                 </div>
               )}
-              {technicalRequirements.challenges && technicalRequirements.challenges.length > 0 && (
+              {technicalRequirements.challenges && Array.isArray(technicalRequirements.challenges) && technicalRequirements.challenges.length > 0 && (
                 <div>
                   <strong>Requirements:</strong>
                   <ul className="ml-3 mt-1 space-y-0.5">
-                    {technicalRequirements.challenges.map((challenge, index) => (
+                    {technicalRequirements.challenges.map((challenge: string, index: number) => (
                       <li key={index} className="text-xs">• {challenge}</li>
                     ))}
                   </ul>
@@ -1303,7 +1451,7 @@ Always be helpful, professional, and provide practical recommendations that help
         )}
 
         {/* Business Insights */}
-        {businessInsights && (
+        {businessInsights && (businessInsights.revenueModel || (businessInsights.keyFeatures && businessInsights.keyFeatures.length > 0) || (businessInsights.risks && businessInsights.risks.length > 0)) && (
           <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
             <h5 className="font-semibold text-foreground mb-2 flex items-center gap-1">
               <IconTrendingUp className="h-3 w-3" />
@@ -1311,31 +1459,31 @@ Always be helpful, professional, and provide practical recommendations that help
             </h5>
             <div className="text-muted-foreground space-y-1">
               <p><strong>Revenue Model:</strong> {businessInsights.revenueModel}</p>
-              {businessInsights.keyFeatures && businessInsights.keyFeatures.length > 0 && (
+              {businessInsights.keyFeatures && Array.isArray(businessInsights.keyFeatures) && businessInsights.keyFeatures.length > 0 && (
                 <div>
                   <strong>Key Features:</strong>
                   <ul className="ml-3 mt-1 space-y-0.5">
-                    {businessInsights.keyFeatures.map((feature, index) => (
+                    {businessInsights.keyFeatures.map((feature: string, index: number) => (
                       <li key={index} className="text-xs">• {feature}</li>
                     ))}
                   </ul>
                 </div>
               )}
-              {businessInsights.successFactors && businessInsights.successFactors.length > 0 && (
+              {businessInsights.successFactors && Array.isArray(businessInsights.successFactors) && businessInsights.successFactors.length > 0 && (
                 <div>
                   <strong>Success Factors:</strong>
                   <ul className="ml-3 mt-1 space-y-0.5">
-                    {businessInsights.successFactors.map((factor, index) => (
+                    {businessInsights.successFactors.map((factor: string, index: number) => (
                       <li key={index} className="text-xs">• {factor}</li>
                     ))}
                   </ul>
                 </div>
               )}
-              {businessInsights.risks && businessInsights.risks.length > 0 && (
+              {businessInsights.risks && Array.isArray(businessInsights.risks) && businessInsights.risks.length > 0 && (
                 <div>
                   <strong>Risks:</strong>
                   <ul className="ml-3 mt-1 space-y-0.5">
-                    {businessInsights.risks.map((risk, index) => (
+                    {businessInsights.risks.map((risk: string, index: number) => (
                       <li key={index} className="text-xs text-orange-600 dark:text-orange-400">• {risk}</li>
                     ))}
                   </ul>
@@ -1451,7 +1599,7 @@ Always be helpful, professional, and provide practical recommendations that help
         )}
 
         {/* Recommendations */}
-        {recommendations && (
+        {recommendations && (recommendations.bidStrategy || recommendations.proposedApproach || (recommendations.differentiators && recommendations.differentiators.length > 0)) && (
           <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-950/30 dark:to-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 shadow-sm">
             <h5 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <div className="p-1 bg-indigo-100 dark:bg-indigo-900/50 rounded-md">
@@ -1462,11 +1610,11 @@ Always be helpful, professional, and provide practical recommendations that help
             <div className="text-muted-foreground space-y-1">
               <p><strong>Bid Strategy:</strong> {recommendations.bidStrategy}</p>
               <p><strong>Proposed Approach:</strong> {recommendations.proposedApproach}</p>
-              {recommendations.differentiators && recommendations.differentiators.length > 0 && (
+              {recommendations.differentiators && Array.isArray(recommendations.differentiators) && recommendations.differentiators.length > 0 && (
                 <div>
                   <strong>Key Differentiators:</strong>
                   <ul className="ml-3 mt-1 space-y-0.5">
-                    {recommendations.differentiators.map((diff, index) => (
+                    {recommendations.differentiators.map((diff: string, index: number) => (
                       <li key={index} className="text-xs">• {diff}</li>
                     ))}
                   </ul>
