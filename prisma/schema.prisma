@@ -13,6 +13,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserType {
+  STUDENT
+  HIRER
+}
+
 model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique
@@ -20,6 +25,7 @@ model User {
   firstName String?
   lastName  String?
   imageUrl  String?
+  userType  UserType?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -42,6 +48,7 @@ model UserProfile {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Student fields
   selectedSkills String[]
 
   experienceLevel ExperienceLevel?
@@ -62,6 +69,17 @@ model UserProfile {
   workDescription String?
   languages       String[]
   projectTypes    String[]
+
+  // Hirer fields
+  companyName        String?
+  companySize        String?
+  industry           String?
+  companyDescription String?
+  hiringNeeds        String[] // Skills/areas they hire for
+  typicalBudgetMin   Float?
+  typicalBudgetMax   Float?
+  preferredRemote    Boolean?
+  typicalProjectDuration String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

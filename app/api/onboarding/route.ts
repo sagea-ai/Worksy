@@ -24,19 +24,31 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
     const {
+      userType,
+      // Student fields
       selectedSkills,
       experienceLevel,
       preferredPlatforms,
       hourlyRateMin,
       hourlyRateMax,
       availability,
+      // Hirer fields
+      companyName,
+      companyDescription,
+      companySize,
+      industry,
+      hiringNeeds,
+      typicalBudgetMin,
+      typicalBudgetMax,
+      preferredRemote,
+      typicalProjectDuration,
       source, // 'manual' or 'freelancer_oauth'
       freelancerProfile,
       accessToken,
     } = data;
 
     console.log(
-      `📝 Processing onboarding data from source: ${source || "manual"}`
+      `📝 Processing onboarding data from source: ${source || "manual"}, userType: ${userType}`
     );
 
     let user = await prisma.user.findUnique({
@@ -51,35 +63,56 @@ export async function POST(request: NextRequest) {
           firstName: userProfile.firstName,
           lastName: userProfile.lastName,
           imageUrl: userProfile.imageUrl,
+          userType: userType || undefined,
           onboardingCompleted: true,
         },
       });
     } else {
       user = await prisma.user.update({
         where: { clerkId: userId },
-        data: { onboardingCompleted: true },
+        data: { 
+          onboardingCompleted: true,
+          userType: userType || undefined,
+        },
       });
     }
 
-    let profileData: any = {
-      selectedSkills,
-      experienceLevel,
-      preferredPlatforms,
-      hourlyRateMin,
-      hourlyRateMax,
-      availability,
-    };
+    // Build profile data based on user type
+    let profileData: any = {};
 
-    if (source === "freelancer_oauth" && freelancerProfile) {
-      console.log("🔗 Enhancing profile with Freelancer data");
+    if (userType === "STUDENT") {
       profileData = {
-        ...profileData,
-        bio: freelancerProfile.profileDescription,
-        location:
-          freelancerProfile.location?.city &&
-          freelancerProfile.location?.country
-            ? `${freelancerProfile.location.city}, ${freelancerProfile.location.country}`
-            : undefined,
+        selectedSkills: selectedSkills || [],
+        experienceLevel: experienceLevel || undefined,
+        preferredPlatforms: preferredPlatforms || [],
+        hourlyRateMin: hourlyRateMin || undefined,
+        hourlyRateMax: hourlyRateMax || undefined,
+        availability: availability || undefined,
+      };
+
+      if (source === "freelancer_oauth" && freelancerProfile) {
+        console.log("🔗 Enhancing profile with Freelancer data");
+        profileData = {
+          ...profileData,
+          bio: freelancerProfile.profileDescription,
+          location:
+            freelancerProfile.location?.city &&
+            freelancerProfile.location?.country
+              ? `${freelancerProfile.location.city}, ${freelancerProfile.location.country}`
+              : undefined,
+        };
+      }
+    } else if (userType === "HIRER") {
+      profileData = {
+        companyName: companyName || undefined,
+        companyDescription: companyDescription || undefined,
+        companySize: companySize || undefined,
+        industry: industry || undefined,
+        hiringNeeds: hiringNeeds || [],
+        typicalBudgetMin: typicalBudgetMin || undefined,
+        typicalBudgetMax: typicalBudgetMax || undefined,
+        preferredRemote: preferredRemote !== undefined ? preferredRemote : undefined,
+        typicalProjectDuration: typicalProjectDuration || undefined,
       };
     }
 
