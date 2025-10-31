@@ -339,7 +339,7 @@ function OnboardingPageContent() {
               <HirerBudgetPreferences
                 typicalBudgetMin={onboardingData.typicalBudgetMin || 0}
                 typicalBudgetMax={onboardingData.typicalBudgetMax || 0}
-                preferredRemote={onboardingData.preferredRemote}
+                preferredRemote={onboardingData.preferredRemote || false}
                 typicalProjectDuration={onboardingData.typicalProjectDuration || ''}
                 onUpdate={updateOnboardingData}
               />
