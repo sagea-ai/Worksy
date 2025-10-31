@@ -65,7 +65,7 @@ export const Navbar = () => {
                 href="/"
                 className="ml-2 font-bold text-xl flex"
               >
-                Gigstar AI
+                Worksy
               </a>
             </NavigationMenuItem>
             <span className="flex md:hidden"></span>
@@ -125,7 +125,7 @@ export const Navbar = () => {
               className="ml-2 font-bold text-xl flex"
             >
               <LogoIcon />
-              Gigstar AI
+              Worksy
             </a>
           </NavigationMenuItem>
 
@@ -147,7 +147,7 @@ export const Navbar = () => {
               <SheetContent side={"left"}>
                 <SheetHeader>
                   <SheetTitle className="font-bold text-xl">
-                    Gigstar AI
+                    Worksy
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col justify-center items-center gap-2 mt-4">

@@ -10,21 +10,21 @@ interface ServiceProps {
 
 const serviceList: ServiceProps[] = [
   {
-    title: "Smart Bidding Engine",
+    title: "Competitive Intelligence Engine",
     description:
-      "AI analyzes project requirements, competition, and success rates to submit optimal bids automatically across all connected platforms.",
+      "AI analyzes what winning freelancers do differently, their pricing strategies, and success patterns to position you strategically against the competition.",
     icon: <ChartIcon />,
   },
   {
-    title: "Proposal Generation",
+    title: "Strategic Proposal Crafting",
     description:
-      "Generate personalized, compelling proposals using AI that understands client needs and your unique value proposition.",
+      "Generate proposals that highlight your competitive advantages and position you as the smart choice against established global talent.",
     icon: <WalletIcon />,
   },
   {
-    title: "Multi-Platform Management",
+    title: "Market Positioning Dashboard",
     description:
-      "Centralized dashboard to monitor all your freelance activities, from bid tracking to client communications across 5+ marketplaces.",
+      "Centralized intelligence hub to understand what you're competing for, track your performance against global standards, and optimize your market position.",
     icon: <MagnifierIcon />,
   },
 ];
@@ -36,13 +36,13 @@ export const Services = () => {
         <div>
           <h2 className="text-3xl md:text-4xl font-bold">
             <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
-              AI-Powered{" "}
+              Competitive{" "}
             </span>
-            Services
+            Intelligence
           </h2>
 
           <p className="text-muted-foreground text-xl mt-4 mb-8 ">
-            Comprehensive automation tools designed to maximize your freelance success and streamline your workflow.
+            Strategic tools designed to help Nepali tech talents understand their competition and position themselves to win in the global marketplace.
           </p>
 
           <div className="flex flex-col gap-8">

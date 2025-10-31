@@ -22,18 +22,18 @@ export const About = () => {
                 <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
                   About{" "}
                 </span>
-                Gigstar AI
+                Worksy
               </h2>
               <p className="text-xl text-muted-foreground mt-4">
-                We're revolutionizing the freelance industry by connecting talented professionals 
-                with opportunities through intelligent automation. Our AI-powered platform helps 
-                freelancers and agencies scale their businesses by automating job discovery, 
-                proposal generation, and client communication across major marketplaces like 
+                We're empowering Nepali tech talents to compete and win in the global freelance marketplace. 
+                While others were born and bred in the freelance darkness, we help you become the David that 
+                beats the Goliaths. Our AI-powered platform levels the playing field by automating job discovery, 
+                intelligent proposal crafting, and strategic market analysis across major platforms like 
                 Freelancer, Upwork, and more.
               </p>
             </div>
 
-            <Statistics />
+            {/* <Statistics /> */}
           </div>
         </div>
       </div>

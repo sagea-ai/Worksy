@@ -10,27 +10,27 @@ interface FeatureProps {
 const features: FeatureProps[] = [
   {
     icon: <MedalIcon />,
-    title: "Connect Platforms",
+    title: "Analyze Competition",
     description:
-      "Securely link your freelance marketplace accounts. Our platform integrates with Freelancer, Upwork, and more.",
+      "Understand what you're competing against. AI analyzes successful proposals, pricing patterns, and market positioning across platforms.",
   },
   {
     icon: <MapIcon />,
-    title: "AI Discovery", 
+    title: "Strategic Discovery", 
     description:
-      "Our AI agents continuously scan for projects matching your skills, budget, and preferences across all platforms.",
+      "Find opportunities where Nepali tech talents have the best chance to win. AI matches projects to your competitive advantages.",
   },
   {
     icon: <PlaneIcon />,
-    title: "Smart Bidding",
+    title: "Precision Bidding",
     description:
-      "AI generates personalized proposals and automatically submits competitive bids based on market analysis.",
+      "AI crafts proposals that position you strategically against established competitors, highlighting your unique value proposition.",
   },
   {
     icon: <GiftIcon />,
-    title: "Automated Management",
+    title: "Competitive Edge",
     description:
-      "Track applications, manage client communications, and monitor project progress from one unified dashboard.",
+      "Monitor your success rate against global competition and continuously optimize your market positioning strategy.",
   },
 ];
 
@@ -48,7 +48,7 @@ export const HowItWorks = () => {
         Step-by-Step Guide
       </h2>
       <p className="md:w-3/4 mx-auto mt-4 mb-8 text-xl text-muted-foreground">
-        Get started with Gigstar AI in four simple steps and transform your freelance business with intelligent automation.
+        Get started with Worksy in four strategic steps and transform from underdog to market contender using competitive intelligence.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

@@ -13,7 +13,7 @@ export const Footer = () => {
             className="font-bold text-xl flex"
           >
             <LogoIcon />
-            Gigstar AI
+            Worksy
           </a>
         </div>
 
@@ -152,7 +152,7 @@ export const Footer = () => {
 
       <section className="container pb-14 text-center">
         <h3>
-          &copy; 2024 Gigstar AI. All rights reserved.{" "}
+          &copy; 2025 Worksy. All rights reserved.{" "}
           <a
             rel="noreferrer noopener"
             href="#"

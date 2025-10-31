@@ -20,22 +20,22 @@ export const Hero = () => {
         <main className="text-5xl md:text-6xl font-bold">
           <h1 className="inline">
             <span className="inline bg-gradient-to-r from-[#F596D3]  to-[#D247BF] text-transparent bg-clip-text">
-              Gigstar AI
+              Worksy
             </span>{" "}
-            for freelancers
+            for Nepali tech talents
           </h1>{" "}
           that{" "}
           <h2 className="inline">
             <span className="inline bg-gradient-to-r from-[#61DAFB] via-[#1fc0f1] to-[#03a3d7] text-transparent bg-clip-text">
-              Source, Win & Deliver
+              Beat the Competition
             </span>{" "}
-            work effortlessly
+            effortlessly
           </h2>
         </main>
 
         <p className="text-xl text-muted-foreground md:w-10/12 mx-auto lg:mx-0">
-          Automate your freelance business with AI agents that discover jobs, craft winning proposals, 
-          and manage client communications across 5+ major marketplaces.
+          Level the playing field against global freelancers. AI agents help Nepali tech talents discover opportunities, 
+          craft winning proposals, and understand exactly what you're competing for across 5+ major marketplaces.
         </p>
 
         <div className="space-y-4 md:space-y-0 md:space-x-4">

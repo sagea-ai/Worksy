@@ -13,33 +13,33 @@ interface FAQProps {
 
 const FAQList: FAQProps[] = [
   {
-    question: "How does Gigstar AI's automated bidding work?",
-    answer: "Our AI analyzes job postings across multiple platforms, matches them to your skills and preferences, then submits personalized proposals 24/7. You set the parameters, and our AI handles the rest while you focus on delivering great work.",
+    question: "How does Worksy help Nepali tech talents compete globally?",
+    answer: "Our AI analyzes what successful global freelancers are doing and adapts their strategies to your unique positioning. It understands market dynamics, pricing strategies, and positioning tactics that work, then helps you implement them strategically.",
     value: "item-1",
   },
   {
-    question: "Which freelance platforms does Gigstar AI support?",
+    question: "Which freelance platforms does Worksy support?",
     answer:
-      "We currently support Upwork, Fiverr, Freelancer, Guru, and PeoplePerHour, with more platforms being added regularly. Our multi-platform approach helps you maximize your opportunities across the entire freelance ecosystem.",
+      "We support Upwork, Fiverr, Freelancer, Guru, and PeoplePerHour, with more platforms being added regularly. Our competitive intelligence spans the entire freelance ecosystem to give you maximum market insight.",
     value: "item-2",
   },
   {
     question:
-      "Can I customize the AI-generated proposals to match my writing style?",
+      "Can Worksy really help me beat established, experienced freelancers?",
     answer:
-      "Absolutely! Our AI learns from your successful proposals and adapts to your unique voice and style. You can also set custom templates, keywords, and tone preferences to ensure every proposal feels authentically yours.",
+      "Yes! By understanding exactly what you're competing against and positioning you strategically. We analyze successful proposals, pricing patterns, and market positioning to help you find your competitive edge and exploit market gaps.",
     value: "item-3",
   },
   {
-    question: "What happens if I want to pause or modify my bidding strategy?",
-    answer: "You have complete control over your account. Pause bidding anytime, adjust your criteria, modify budget ranges, or fine-tune your targeting preferences through our intuitive dashboard - all changes take effect immediately.",
+    question: "What if I'm new to freelancing and don't have much experience?",
+    answer: "That's exactly who Worksy is built for. We level the playing field by giving you the market intelligence and strategic positioning that usually takes years to develop. You'll compete with data, not just hope.",
     value: "item-4",
   },
   {
     question:
-      "How much time can I realistically save using Gigstar AI?",
+      "How much of a competitive advantage can I realistically expect?",
     answer:
-      "Most freelancers save 15-20 hours per week on proposal writing and job searching. This allows you to focus entirely on client work and skill development, often leading to higher rates and better project outcomes.",
+      "Most Nepali tech talents see significant improvement in their win rates within the first month. By understanding what you're competing for and positioning strategically, you'll move from random applications to targeted, intelligent market entry.",
     value: "item-5",
   },
 ];

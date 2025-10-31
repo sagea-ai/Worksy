@@ -20,7 +20,7 @@ export default function Home() {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Navbar />
         <Hero />
-        <Sponsors />
+        {/* <Sponsors /> */}
         <About />
         <HowItWorks />
         <Features />
@@ -28,7 +28,7 @@ export default function Home() {
       </div>
       <Cta />
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Testimonials />
+        {/* <Testimonials /> */}
         {/* <Team /> */}
         <Pricing />
         <Newsletter />

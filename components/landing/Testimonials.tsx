@@ -17,44 +17,44 @@ interface TestimonialProps {
 const testimonials: TestimonialProps[] = [
   {
     image: "https://github.com/shadcn.png",
-    name: "Sarah Chen",
-    userName: "@sarahwrites",
-    comment: "Gigstar AI tripled my proposal acceptance rate! The automated bidding is incredibly smart and saves me hours every day.",
+    name: "Rajesh Shrestha",
+    userName: "@rajeshdev",
+    comment: "Worksy helped me understand what I was competing against. Now I position myself strategically instead of just hoping to get lucky. Win rate tripled!",
   },
   {
     image: "https://github.com/shadcn.png",
-    name: "Marcus Rodriguez",
-    userName: "@marcusdev",
+    name: "Priya Gurung",
+    userName: "@priyauxui",
     comment:
-      "As a developer, I was skeptical about AI automation. But Gigstar AI's proposals are so well-crafted, clients often think I wrote them personally. Game changer!",
+      "As a Nepali designer competing globally, I felt lost. Worksy showed me exactly how successful freelancers position themselves. Now I'm beating established competitors regularly!",
   },
   {
     image: "https://github.com/shadcn.png",
-    name: "Emily Thompson",
-    userName: "@emdesigner",
+    name: "Bibek Tamang",
+    userName: "@bibekweb",
     comment:
-      "Managing multiple platforms was exhausting until I found Gigstar AI. Now I'm active on 5 platforms simultaneously with better results than when I manually handled just 2.",
+      "Being from Nepal, I thought I'd always be at a disadvantage. Worksy turned that into my competitive edge by helping me understand what clients really want.",
   },
   {
     image: "https://github.com/shadcn.png",
-    name: "David Kim",
-    userName: "@davidconsults",
+    name: "Sarita Magar",
+    userName: "@saritamarketing",
     comment:
-      "The ROI tracking feature helped me identify which platforms and project types are most profitable. I've increased my hourly rate by 40% in just 3 months.",
+      "The competitive intelligence is incredible. I can see exactly what winning proposals look like and adapt my approach. Went from random applications to strategic positioning.",
   },
   {
     image: "https://github.com/shadcn.png",
-    name: "Lisa Martinez",
-    userName: "@lisamarketing",
+    name: "Dipesh Karki",
+    userName: "@dipeshdata",
     comment:
-      "Gigstar AI's 24/7 monitoring means I never miss opportunities. I've landed projects in different time zones while sleeping!",
+      "Worksy helped me move from competing on price to competing on value. Now I understand what I'm up against and how to position myself to win consistently.",
   },
   {
     image: "https://github.com/shadcn.png",
-    name: "James Wilson",
-    userName: "@jameswrites",
+    name: "Anita Rai",
+    userName: "@anitawriter",
     comment:
-      "The proposal generation is so sophisticated, it captures my writing style perfectly. Clients can't tell the difference, and my win rate has skyrocketed.",
+      "The market positioning insights are game-changing. Instead of feeling like David fighting Goliath blindfolded, now I know exactly where to aim my stones.",
   },
 ];
 
@@ -68,13 +68,13 @@ export const Testimonials = () => {
         See Why
         <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
           {" "}
-          Freelancers Choose{" "}
+          Nepali Tech Talents Choose{" "}
         </span>
-        Gigstar AI
+        Worksy
       </h2>
 
       <p className="text-xl text-muted-foreground pt-4 pb-8">
-        Real success stories from freelancers who transformed their business with AI automation
+        Real success stories from Nepali talents who turned their geographic disadvantage into a competitive advantage
       </p>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 sm:block columns-2  lg:columns-3 lg:gap-6 mx-auto space-y-4 lg:space-y-6">
