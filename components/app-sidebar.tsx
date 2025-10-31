@@ -13,6 +13,7 @@ import {
   IconExternalLink,
   IconFileText,
   IconCloudDataConnection,
+  IconBrain,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -52,6 +53,11 @@ const navItems = [
     title: "Teams",
     url: "/teams",
     icon: IconUsers,
+  },
+  {
+    title: "SAGE",
+    url: "/sage",
+    icon: IconBrain,
   },
 ]
 
