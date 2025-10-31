@@ -1,0 +1,277 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  onboardingCompleted Boolean      @default(false)
+  profile             UserProfile?
+
+  jobs Job[]
+
+  createdTeams        Team[]           @relation("TeamCreator")
+  teamMemberships     TeamMember[]     @relation("TeamMemberships")
+  sentInvitations     TeamInvitation[] @relation("InvitationSender")
+  receivedInvitations TeamInvitation[] @relation("InvitationReceiver")
+  teamActivities      TeamActivity[]   @relation("TeamActivities")
+
+  @@map("users")
+}
+
+model UserProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  selectedSkills String[]
+
+  experienceLevel ExperienceLevel?
+
+  preferredPlatforms String[]
+
+  hourlyRateMin Float?
+  hourlyRateMax Float?
+  availability  String?
+
+  bio      String?
+  location String?
+  website  String?
+  linkedIn String?
+  github   String?
+  timezone String?
+
+  workDescription String?
+  languages       String[]
+  projectTypes    String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum JobState {
+  NEW
+  ANALYZING
+  DECLINED
+  PROPOSING
+  PROPOSED
+  NEGOTIATING
+  TEAM_SUMMONED
+  ORDER_CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  ERROR
+}
+
+enum JobPlatform {
+  FREELANCER
+  UPWORK
+  FIVERR
+  TOPTAL
+  GURU
+  PEOPLEPERHOUR
+  OTHER
+}
+
+model Job {
+  id String @id @default(cuid())
+
+  externalId   String
+  platform     JobPlatform
+  title        String
+  description  String
+  budget       Float?
+  currency     String      @default("USD")
+  skills       String[]
+  location     String?
+  isRemote     Boolean     @default(true)
+  isUrgent     Boolean     @default(false)
+  verified     Boolean     @default(false)
+  clientRating Float?
+
+  state        JobState          @default(NEW)
+  stateHistory JobStateHistory[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  proposalSubmitted Boolean   @default(false)
+  proposalText      String?
+  proposedBudget    Float?
+  proposedDeadline  DateTime?
+  teamSummoned      Boolean   @default(false)
+  teamSummonedAt    DateTime?
+  assignedTeamId    String?
+  assignedTeam      Team?     @relation("TeamAssignedJobs", fields: [assignedTeamId], references: [id])
+  teamAssignments   JobTeam[]
+
+  startDate      DateTime?
+  endDate        DateTime?
+  actualBudget   Float?
+  clientFeedback String?
+  rating         Float?
+
+  aiAnalysis   Json?
+  buildingPlan Json?
+
+  chatHistory Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([platform, externalId, userId])
+  @@map("jobs")
+}
+
+model JobStateHistory {
+  id    String @id @default(cuid())
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  fromState JobState?
+  toState   JobState
+  reason    String?
+  notes     String?
+
+  changedBy String?
+
+  createdAt DateTime @default(now())
+
+  @@map("job_state_history")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("posts")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdBy   String // Team admin (creator)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  creator        User             @relation("TeamCreator", fields: [createdBy], references: [id])
+  members        TeamMember[]
+  assignedJobs   Job[]            @relation("TeamAssignedJobs")
+  jobAssignments JobTeam[]
+  invitations    TeamInvitation[]
+  activities     TeamActivity[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation("TeamMemberships", fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model TeamInvitation {
+  id               String           @id @default(cuid())
+  teamId           String
+  invitedBy        String
+  invitedUserEmail String
+  invitedUserId    String?
+  status           InvitationStatus @default(PENDING)
+  createdAt        DateTime         @default(now())
+  respondedAt      DateTime?
+
+  team        Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  inviter     User  @relation("InvitationSender", fields: [invitedBy], references: [id])
+  invitedUser User? @relation("InvitationReceiver", fields: [invitedUserId], references: [id])
+
+  @@unique([teamId, invitedUserEmail])
+  @@map("team_invitations")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model TeamActivity {
+  id           String       @id @default(cuid())
+  teamId       String
+  userId       String?
+  activityType ActivityType
+  description  String
+  metadata     Json?
+  createdAt    DateTime     @default(now())
+
+  team Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User? @relation("TeamActivities", fields: [userId], references: [id])
+
+  @@map("team_activities")
+}
+
+model JobTeam {
+  id         String   @id @default(cuid())
+  jobId      String
+  teamId     String
+  assignedAt DateTime @default(now())
+
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, teamId])
+  @@map("job_teams")
+}
+
+enum ActivityType {
+  MEMBER_JOINED
+  MEMBER_LEFT
+  MEMBER_INVITED
+  TEAM_SUMMONED
+  JOB_ASSIGNED
+  PROJECT_STARTED
+  PROJECT_COMPLETED
+  TEAM_CREATED
+}
