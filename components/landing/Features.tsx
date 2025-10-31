@@ -16,34 +16,34 @@ interface FeatureProps {
 
 const features: FeatureProps[] = [
   {
-    title: "Unified Workspace",
+    title: "Competitive Intelligence",
     description:
-      "One workspace for all clients (direct and marketplaces). Manage your entire freelance business from a single dashboard.",
+      "Understand exactly what you're competing against. Analyze winning proposals, pricing strategies, and market positioning from one dashboard.",
     image: "/assets/looking-ahead.png",
   },
   {
-    title: "Platform Aggregation", 
+    title: "Global Market Access", 
     description:
-      "Aggregates 5+ major freelance marketplaces for unlimited demand. Never miss an opportunity again.",
+      "Access 5+ major freelance marketplaces with equal footing. No more geographic disadvantages or cultural barriers.",
     image: "/assets/reflecting.png",
   },
   {
-    title: "AI-Powered Delivery",
+    title: "AI-Powered Advantage",
     description:
-      "AI agents power 80% of delivery (humans only where it matters). Focus on high-value work while AI handles the rest.",
+      "Level the playing field with AI that crafts winning proposals, analyzes competition, and positions you strategically against established freelancers.",
     image: "/assets/growth.png",
   },
 ];
 
 const featureList: string[] = [
-  "Multi-platform integration",
-  "Automated bidding",
-  "AI proposal generation",
-  "Client communication management",
-  "Revenue tracking",
-  "Performance analytics",
-  "Smart project matching",
-  "Competitive pricing analysis",
+  "Competitive analysis",
+  "Market positioning",
+  "AI proposal crafting",
+  "Strategic bidding",
+  "Global market access",
+  "Performance benchmarking",
+  "Smart opportunity matching",
+  "Pricing intelligence",
 ];
 
 export const Features = () => {
@@ -53,9 +53,9 @@ export const Features = () => {
       className="container py-24 sm:py-32 space-y-8"
     >
       <h2 className="text-3xl lg:text-4xl font-bold md:text-center">
-        Powerful{" "}
+        Competitive{" "}
         <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
-          AI Features
+          AI Advantage
         </span>
       </h2>
 

@@ -225,7 +225,7 @@ function OnboardingPageContent() {
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <IconRocket className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome to GigStar AI! 🚀</CardTitle>
+          <CardTitle className="text-2xl font-bold">Welcome to Worksy! 🚀</CardTitle>
           <CardDescription className="text-base">
             Let's get you set up in seconds and start winning projects
           </CardDescription>

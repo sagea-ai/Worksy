@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GigStar AI - Your AI-Powered Platform",
+  title: "Worksy - Your AI-Powered Platform",
   description: "Transform your business with cutting-edge AI solutions",
 };
 

@@ -22,17 +22,17 @@ export const Cta = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 lg:grid lg:grid-cols-2 place-items-center">
         <div className="lg:col-start-1">
           <h2 className="text-3xl md:text-4xl font-bold ">
-            All Your
+            Turn Your
             <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
               {" "}
-              Freelance Platforms{" "}
+              Geographic Disadvantage{" "}
             </span>
-            In One Dashboard
+            Into Competitive Advantage
           </h2>
           <p className="text-muted-foreground text-xl mt-4 mb-8 lg:mb-0">
-            Manage Upwork, Fiverr, Freelancer, Guru, and PeoplePerHour from a single 
-            interface. Track performance, analyze wins, and optimize your strategy 
-            across all platforms with AI-powered insights.
+            Stop competing blindly against established global freelancers. Understand exactly 
+            what you're up against, position yourself strategically, and turn being Nepali 
+            into your unique selling proposition with AI-powered competitive intelligence.
           </p>
         </div>
 

@@ -15,13 +15,13 @@ export const Newsletter = () => {
 
       <div className="container py-24 sm:py-32">
         <h3 className="text-center text-4xl md:text-5xl font-bold">
-          Join the Gigstar AI{" "}
+          Join the Worksy{" "}
           <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
             Community
           </span>
         </h3>
         <p className="text-xl text-muted-foreground text-center mt-4 mb-8">
-          Get weekly tips, platform updates, and exclusive automation strategies delivered to your inbox.
+          Get weekly competitive intelligence, market positioning strategies, and exclusive tips for Nepali tech talents delivered to your inbox.
         </p>
 
         <form

@@ -26,52 +26,52 @@ interface PricingProps {
 
 const pricingList: PricingProps[] = [
   {
-    title: "Starter",
+    title: "David",
     popular: 0,
     price: 49,
     description:
-      "Perfect for individual freelancers getting started with AI automation",
+      "Perfect for Nepali tech talents ready to compete globally",
     buttonText: "Start Free Trial",
     benefitList: [
       "2 Platform connections",
-      "50 Auto-bids per month",
-      "Basic proposal templates",
+      "50 Strategic bids per month",
+      "Competition analysis",
       "Email support",
-      "Performance analytics",
+      "Market positioning insights",
     ],
   },
   {
-    title: "Professional",
+    title: "Champion",
     popular: 1,
     price: 149,
     description:
-      "Ideal for established freelancers ready to scale their business",
+      "For talents ready to dominate their competition systematically",
     buttonText: "Start Free Trial",
     benefitList: [
       "5 Platform connections",
-      "Unlimited auto-bids",
-      "AI-powered proposals",
+      "Unlimited strategic bids",
+      "AI-powered competitive edge",
       "Priority support",
-      "Advanced analytics",
-      "ROI tracking",
-      "Custom bid strategies",
+      "Advanced market intelligence",
+      "ROI benchmarking",
+      "Custom winning strategies",
     ],
   },
   {
-    title: "Agency",
+    title: "Goliath Slayer",
     popular: 0,
     price: 299,
     description:
-      "Built for agencies and teams managing multiple freelancer accounts",
+      "Built for teams ready to systematically outcompete established players",
     buttonText: "Contact Sales",
     benefitList: [
       "Unlimited platforms",
-      "Multi-user management",
-      "White-label options",
-      "Dedicated support",
-      "Custom integrations",
-      "Team collaboration tools",
-      "Enterprise security",
+      "Multi-talent management",
+      "White-label competitive tools",
+      "Dedicated strategist support",
+      "Custom market penetration",
+      "Team collaboration warfare",
+      "Enterprise-grade intelligence",
     ],
   },
 ];
@@ -91,7 +91,7 @@ export const Pricing = () => {
         Plan
       </h2>
       <h3 className="text-xl text-center text-muted-foreground pt-4 pb-8">
-        Start with a 14-day free trial. Scale your freelance business with AI automation that works around the clock.
+        Start with a 14-day free trial. Turn your geographic disadvantage into a competitive advantage with AI-powered market intelligence.
       </h3>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {pricingList.map((pricing: PricingProps) => (

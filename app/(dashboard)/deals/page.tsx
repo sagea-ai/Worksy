@@ -164,7 +164,7 @@ export default function DealsPage() {
   const [availableTeams, setAvailableTeams] = useState<any[]>([])
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
   const [loadingTeamSelection, setLoadingTeamSelection] = useState(false)
-  const [systemPrompt, setSystemPrompt] = useState(`You are GigStar AI, an expert freelancer assistant that helps analyze projects and create detailed building plans. 
+  const [systemPrompt, setSystemPrompt] = useState(`You are Worksy, an expert freelancer assistant that helps analyze projects and create detailed building plans. 
 
 When analyzing projects:
 - Focus on market opportunities and technical feasibility
@@ -2570,7 +2570,7 @@ Always be helpful, professional, and provide practical recommendations that help
                                 <IconBrain className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
                               )}
                               <span className="text-xs font-medium">
-                                {msg.type === 'user' ? 'You' : 'GigStar AI'}
+                                {msg.type === 'user' ? 'You' : 'Worksy'}
                               </span>
                             </div>
                             
@@ -2775,7 +2775,7 @@ Always be helpful, professional, and provide practical recommendations that help
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setSystemPrompt(`You are GigStar AI, an expert freelancer assistant that helps analyze projects and create detailed building plans. 
+                                setSystemPrompt(`You are Worksy, an expert freelancer assistant that helps analyze projects and create detailed building plans. 
 
 When analyzing projects:
 - Focus on market opportunities and technical feasibility

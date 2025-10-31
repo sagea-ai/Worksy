@@ -37,7 +37,7 @@ export const HeroCards = () => {
           </div>
         </CardHeader>
 
-        <CardContent>Gigstar AI increased my project wins by 300%! The AI proposals are incredible.</CardContent>
+        <CardContent>Worksy increased my project wins by 300%! The AI proposals are incredible.</CardContent>
       </Card>
 
       {/* Team */}
@@ -58,7 +58,7 @@ export const HeroCards = () => {
 
         <CardContent className="text-center pb-2">
           <p>
-            Gigstar AI transformed our agency operations - we now handle 3x more
+            Worksy transformed our agency operations - we now handle 3x more
             clients with the same team size.
           </p>
         </CardContent>
