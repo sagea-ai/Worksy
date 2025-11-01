@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "@/lib/prisma";
 
 interface FreelancerJob {
   id: number;
@@ -52,11 +54,26 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get("query") || "";
 
   try {
+    // Add user authentication
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Fetch user profile for filtering
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: { profile: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
     const accessToken = process.env.WORKSY_ACCESS_TOKEN;
 
     if (!accessToken) {
       return NextResponse.json(
-        { error: "Gigstar access token not configured" },
+        { error: "Worksy access token not configured" },
         { status: 500 }
       );
     }
@@ -73,13 +90,30 @@ export async function GET(request: NextRequest) {
       upgrade_details: "true",
     });
 
-    if (query) {
+    // Add skill-based filtering if user has skills
+    if (user.profile?.selectedSkills && user.profile.selectedSkills.length > 0) {
+      // Map user skills to Freelancer job categories/skills
+      const skillQuery = user.profile.selectedSkills.join(" OR ");
+      params.append("query", query || skillQuery);
+    } else if (query) {
       params.append("query", query);
+    }
+
+    // Add budget filtering based on user's hourly rate
+    if (user.profile?.hourlyRateMin && user.profile?.hourlyRateMax) {
+      // Convert hourly rate to project budget (assuming 40-80 hours for fixed projects)
+      const minBudget = user.profile.hourlyRateMin * 40;
+      const maxBudget = user.profile.hourlyRateMax * 80;
+      params.append("min_budget", minBudget.toString());
+      params.append("max_budget", maxBudget.toString());
     }
 
     const apiUrl = `${baseUrl}?${params.toString()}`;
 
-    console.log("🔍 Fetching active projects from Freelancer API:", apiUrl);
+    console.log("🔍 Fetching filtered projects for user:", user.email);
+    console.log("🎯 User skills:", user.profile?.selectedSkills);
+    console.log("💰 User rate range:", user.profile?.hourlyRateMin, "-", user.profile?.hourlyRateMax);
+    console.log("📡 API URL:", apiUrl);
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -106,13 +140,17 @@ export async function GET(request: NextRequest) {
         console.error("Could not parse error as JSON");
       }
 
-      console.log("🔄 Returning fallback mock data due to API error");
+      console.log("🔄 Returning filtered fallback mock data due to API error");
+      const filteredMockJobs = getFilteredMockJobs(user.profile);
+      
       return NextResponse.json({
-        jobs: getMockJobs(),
-        total: getMockJobs().length,
+        jobs: filteredMockJobs,
+        total: filteredMockJobs.length,
         offset: parseInt(offset),
         limit: parseInt(limit),
         fallback: true,
+        filtered: true,
+        userSkills: user.profile?.selectedSkills || [],
         error: `API error: ${response.status} - ${errorText}`,
       });
     }
@@ -125,7 +163,7 @@ export async function GET(request: NextRequest) {
       "active projects from Freelancer"
     );
 
-    const transformedJobs =
+    let transformedJobs =
       data.result?.projects?.map((job) => ({
         id: job.id,
         title: job.title,
@@ -144,23 +182,84 @@ export async function GET(request: NextRequest) {
         ownerName: job.owner?.display_name || "Anonymous",
       })) || [];
 
+    // Apply additional client-side filtering based on user profile
+    const originalCount = transformedJobs.length;
+    console.log("🔍 BEFORE FILTERING: User profile exists?", !!user.profile);
+    console.log("🔍 BEFORE FILTERING: Jobs to filter:", originalCount);
+    console.log("🔍 BEFORE FILTERING: Sample job titles:", transformedJobs.slice(0, 3).map(j => j.title));
+    
+    transformedJobs = filterJobsByUserProfile(transformedJobs, user.profile);
+    
+    console.log(`🎯 After filtering: ${transformedJobs.length}/${originalCount} jobs remain`);
+    
+    if (transformedJobs.length === 0) {
+      console.log("⚠️ No jobs passed filtering! Returning some jobs with relaxed criteria...");
+      
+      // If no jobs pass strict filtering, return jobs with very relaxed criteria
+      transformedJobs = data.result?.projects?.slice(0, 5).map((job) => ({
+        id: job.id,
+        title: job.title,
+        description: job.description,
+        price: job.budget?.maximum || job.budget?.minimum || 0,
+        currency: job.budget?.currency?.code || "USD",
+        platform: "Freelancer",
+        location: job.location?.country?.name || "Worldwide",
+        postedTime: formatTimeAgo(job.time_submitted),
+        skills: job.jobs?.map((j) => j.name) || [],
+        proposalCount: job.bid_stats?.bid_count || 0,
+        rating: (job.owner?.reputation?.entire_site || 0) / 10,
+        isUrgent: job.urgent || false,
+        verified: job.owner?.status?.payment_verified || false,
+        type: job.type?.name || "Fixed",
+        ownerName: job.owner?.display_name || "Anonymous",
+      })) || [];
+      
+      console.log("🔄 Fallback: Returning", transformedJobs.length, "unfiltered jobs");
+    }
+
     return NextResponse.json({
       jobs: transformedJobs,
       total: transformedJobs.length,
       offset: parseInt(offset),
       limit: parseInt(limit),
+      filtered: true,
+      userSkills: user.profile?.selectedSkills || [],
+      debug: {
+        originalJobCount: originalCount,
+        filteredJobCount: transformedJobs.length,
+        userProfileExists: !!user.profile,
+        hasSkills: !!(user.profile?.selectedSkills?.length),
+        hasRates: !!(user.profile?.hourlyRateMin && user.profile?.hourlyRateMax),
+      }
     });
   } catch (error) {
     console.error("💥 Error fetching jobs from Freelancer:", error);
 
+    // Fetch user profile for fallback filtering
+    let userProfile = null;
+    try {
+      const { userId } = await auth();
+      if (userId) {
+        const user = await prisma.user.findUnique({
+          where: { clerkId: userId },
+          include: { profile: true },
+        });
+        userProfile = user?.profile;
+      }
+    } catch (e) {
+      console.error("Could not fetch user profile for fallback");
+    }
+
+    const filteredMockJobs = getFilteredMockJobs(userProfile);
+    
     console.log("🔄 Returning fallback mock data due to network/parsing error");
     return NextResponse.json({
-      jobs: getMockJobs(),
-      total: getMockJobs().length,
+      jobs: filteredMockJobs,
+      total: filteredMockJobs.length,
       offset: parseInt(offset || "0"),
       limit: parseInt(limit || "20"),
       fallback: true,
-      error: "Network error - using fallback data",
+      error: "Network error - using filtered fallback data",
     });
   }
 }
@@ -181,6 +280,96 @@ function formatTimeAgo(timestamp: number): string {
     const days = Math.floor(diffInSeconds / 86400);
     return `${days} day${days > 1 ? "s" : ""} ago`;
   }
+}
+
+// Helper function to filter jobs by user profile
+function filterJobsByUserProfile(jobs: any[], userProfile: any) {
+  if (!userProfile) return jobs;
+
+  console.log("🔍 Filtering", jobs.length, "jobs for user profile");
+  console.log("👤 User skills:", userProfile.selectedSkills);
+  console.log("💰 User rates:", userProfile.hourlyRateMin, "-", userProfile.hourlyRateMax);
+  console.log("🎓 Experience level:", userProfile.experienceLevel);
+
+  const filteredJobs = jobs.filter(job => {
+    let matchScore = 0;
+    
+    // Skill matching - make this more flexible
+    if (userProfile.selectedSkills && userProfile.selectedSkills.length > 0) {
+      const jobSkills = job.skills.map((s: string) => s.toLowerCase());
+      const userSkills = userProfile.selectedSkills.map((s: string) => s.toLowerCase());
+      
+      const skillMatches = userSkills.some((userSkill: string) => 
+        jobSkills.some((jobSkill: string) => 
+          jobSkill.includes(userSkill) || userSkill.includes(jobSkill) ||
+          // Add partial matching for common tech terms
+          (userSkill.includes('react') && jobSkill.includes('react')) ||
+          (userSkill.includes('node') && jobSkill.includes('node')) ||
+          (userSkill.includes('javascript') && (jobSkill.includes('js') || jobSkill.includes('javascript'))) ||
+          (userSkill.includes('python') && jobSkill.includes('python')) ||
+          (userSkill.includes('web') && jobSkill.includes('web'))
+        )
+      );
+      
+      if (skillMatches) {
+        matchScore += 3;
+        console.log("✅ Skill match found for job:", job.title);
+      }
+    } else {
+      // If no skills selected, give some base score
+      matchScore += 1;
+    }
+
+    // Budget filtering - make this more lenient
+    if (userProfile.hourlyRateMin && userProfile.hourlyRateMax && job.price > 0) {
+      const estimatedHours = 50;
+      const estimatedHourlyRate = job.price / estimatedHours;
+      
+      // More lenient budget matching
+      if (estimatedHourlyRate >= (userProfile.hourlyRateMin * 0.5) && 
+          estimatedHourlyRate <= (userProfile.hourlyRateMax * 2)) {
+        matchScore += 2;
+        console.log("💰 Budget match for job:", job.title, "Rate:", estimatedHourlyRate);
+      }
+    } else {
+      // If no rate set, give some base score
+      matchScore += 1;
+    }
+
+    // Experience level matching
+    if (userProfile.experienceLevel === 'EXPERT' || userProfile.experienceLevel === 'ADVANCED') {
+      if (job.verified) matchScore += 1;
+      if (job.rating >= 4.5) matchScore += 1;
+    }
+
+    // Prefer jobs with reasonable proposal counts
+    if (job.proposalCount < 30) matchScore += 1; // Increased from 20 to 30
+    
+    // Prefer urgent jobs for experienced users
+    if (job.isUrgent && (userProfile.experienceLevel === 'INTERMEDIATE' || userProfile.experienceLevel === 'ADVANCED' || userProfile.experienceLevel === 'EXPERT')) {
+      matchScore += 1;
+    }
+
+    // Lower the minimum match score requirement
+    const passed = matchScore >= 1; // Reduced from 2 to 1
+    
+    console.log(`📊 Job "${job.title}" - Score: ${matchScore}, Passed: ${passed}`);
+    
+    return passed;
+  });
+
+  console.log(`🎯 Filtered ${filteredJobs.length} jobs from ${jobs.length} total jobs`);
+  
+  return filteredJobs;
+}
+
+// Helper function to get filtered mock jobs based on user profile
+function getFilteredMockJobs(userProfile: any) {
+  const allMockJobs = getMockJobs();
+  
+  if (!userProfile) return allMockJobs;
+  
+  return filterJobsByUserProfile(allMockJobs, userProfile);
 }
 
 function getMockJobs() {
