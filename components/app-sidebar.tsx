@@ -13,6 +13,7 @@ import {
   IconFileText,
   IconCloudDataConnection,
   IconBrain,
+  IconChartBar,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -42,6 +43,11 @@ const navItems = [
     title: "Deals",
     url: "/deals",
     icon: IconBusinessplan,
+  },
+  {
+    title: "Stats",
+    url: "/stats",
+    icon: IconChartBar,
   },
   {
     title: "Proposals",

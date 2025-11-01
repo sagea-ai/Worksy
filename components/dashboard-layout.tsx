@@ -23,9 +23,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="h-screen overflow-hidden">
+      <SidebarInset className="h-screen flex flex-col">
         <SiteHeader />
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </SidebarInset>
