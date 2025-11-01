@@ -642,31 +642,36 @@ export default function StatsPage() {
           <CardContent>
             {stats.skillsAnalysis.length > 0 ? (
               <div className="space-y-4">
-                {/* Show bottom 3 skills as improvement opportunities */}
-                {stats.skillsAnalysis
-                  .filter(skill => skill.rejected > 0)
-                  .sort((a, b) => a.acceptanceRate - b.acceptanceRate)
-                  .slice(0, 3)
-                  .map((skill, index) => (
-                  <div key={skill.skill} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm">{skill.skill}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {skill.acceptanceRate.toFixed(1)}% acceptance rate • 
-                        ${skill.avgBudget.toFixed(0)} avg budget
-                      </p>
+                {/* Show skills with improvement opportunities or top skills to develop further */}
+                {(() => {
+                  // First try to show skills that were rejected (improvement opportunities)
+                  const improvementSkills = stats.skillsAnalysis
+                    .filter(skill => skill.rejected > 0)
+                    .sort((a, b) => a.acceptanceRate - b.acceptanceRate)
+                    .slice(0, 3);
+                  
+                  // If no rejected skills, show lowest acceptance rate skills as development opportunities
+                  const skillsToShow = improvementSkills.length > 0 
+                    ? improvementSkills 
+                    : stats.skillsAnalysis
+                        .sort((a, b) => a.acceptanceRate - b.acceptanceRate)
+                        .slice(0, 3);
+                  
+                  return skillsToShow.map((skill, index) => (
+                    <div key={skill.skill} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">{skill.skill}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {skill.acceptanceRate.toFixed(1)}% acceptance rate • 
+                          ${skill.avgBudget.toFixed(0)} avg budget
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {improvementSkills.length > 0 ? `Improve ${index + 1}` : `Develop ${index + 1}`}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      Priority {index + 1}
-                    </Badge>
-                  </div>
-                ))}
-                {stats.skillsAnalysis.filter(skill => skill.rejected > 0).length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <IconTarget className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Great job! No obvious skill gaps detected.</p>
-                  </div>
-                )}
+                  ));
+                })()}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
@@ -697,27 +702,27 @@ export default function StatsPage() {
                 <IconArrowUp className="h-4 w-4 text-green-600" />
               </div>
               
-              <div className="flex items-center justify-between p-3 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
                 <div>
-                  <h4 className="font-medium text-sm text-blue-800 dark:text-blue-300">Best Platform</h4>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">{stats.insights.bestPlatform}</p>
+                  <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Best Platform</h4>
+                  <p className="text-xs text-green-600 dark:text-green-400">{stats.insights.bestPlatform}</p>
                 </div>
-                <IconGlobe className="h-4 w-4 text-blue-600" />
+                <IconGlobe className="h-4 w-4 text-green-600" />
               </div>
               
-              <div className="flex items-center justify-between p-3 border rounded-lg bg-purple-50 dark:bg-purple-950/20">
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
                 <div>
-                  <h4 className="font-medium text-sm text-purple-800 dark:text-purple-300">Optimal Budget Range</h4>
-                  <p className="text-xs text-purple-600 dark:text-purple-400">{stats.insights.optimalBudgetRange}</p>
+                  <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Optimal Budget Range</h4>
+                  <p className="text-xs text-green-600 dark:text-green-400">{stats.insights.optimalBudgetRange}</p>
                 </div>
-                <IconCash className="h-4 w-4 text-purple-600" />
+                <IconCash className="h-4 w-4 text-green-600" />
               </div>
               
               {stats.insights.weakestSkill !== 'N/A' && (
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
                   <div>
-                    <h4 className="font-medium text-sm text-orange-800 dark:text-orange-300">Improvement Focus</h4>
-                    <p className="text-xs text-orange-600 dark:text-orange-400">{stats.insights.weakestSkill}</p>
+                    <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Improvement Focus</h4>
+                    <p className="text-xs text-green-600 dark:text-green-400">{stats.insights.weakestSkill}</p>
                   </div>
                   <IconTarget className="h-4 w-4 text-orange-600" />
                 </div>
