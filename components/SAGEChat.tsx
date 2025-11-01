@@ -143,28 +143,34 @@ export default function SAGEChat() {
         </Button>
       </div>
 
-      {/* Messages - ChatGPT style with Jony Ive proportions */}
+      {/* Messages - ChatGPT style with more visible bubbles */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-full">
           {messages.map((msg, index) => (
             <div key={msg.id} className={`group py-6 px-6 ${
-              msg.role === 'assistant' ? 'bg-muted/20' : ''
-            } ${index === 0 ? 'pt-8' : ''}`}>
+              msg.role === 'assistant' ? 'bg-muted/30' : 'bg-background'
+            } ${index === 0 ? 'pt-8' : ''} hover:bg-opacity-80 transition-colors`}>
               <div className="max-w-2xl mx-auto">
                 <div className="flex gap-6 items-start">
-                  {/* Avatar - minimal and precise */}
-                  <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                  {/* Avatar - more visible */}
+                  <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shadow-sm ${
                     msg.role === 'user' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-primary/10 text-primary'
+                      ? 'bg-primary text-primary-foreground border-2 border-primary/20' 
+                      : 'bg-primary/15 text-primary border-2 border-primary/10'
                   }`}>
                     {msg.role === 'user' ? 'Y' : 'S'}
                   </div>
                   
-                  {/* Message Content - perfect typography */}
+                  {/* Message Content - in visible bubble */}
                   <div className="flex-1 min-w-0 pt-1">
-                    <div className="text-[15px] leading-7 text-foreground whitespace-pre-wrap font-normal">
-                      {msg.content}
+                    <div className={`rounded-2xl px-4 py-3 ${
+                      msg.role === 'user' 
+                        ? 'bg-primary/5 border border-primary/10' 
+                        : 'bg-card border border-border/50'
+                    } shadow-sm`}>
+                      <div className="text-[15px] leading-7 text-foreground whitespace-pre-wrap font-normal">
+                        {msg.content}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -172,20 +178,22 @@ export default function SAGEChat() {
             </div>
           ))}
 
-          {/* Loading indicator - subtle and elegant */}
+          {/* Loading indicator - with visible bubble */}
           {isLoading && (
-            <div className="group py-6 px-6 bg-muted/20">
+            <div className="group py-6 px-6 bg-muted/30 hover:bg-opacity-80 transition-colors">
               <div className="max-w-2xl mx-auto">
                 <div className="flex gap-6 items-start">
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary/15 text-primary border-2 border-primary/10 flex items-center justify-center text-xs font-semibold shadow-sm">
                     S
                   </div>
                   <div className="flex-1 min-w-0 pt-1">
-                    <div className="flex items-center gap-3">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    <div className="bg-card border border-border/50 rounded-2xl px-4 py-3 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse"></div>
+                          <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -194,17 +202,19 @@ export default function SAGEChat() {
             </div>
           )}
 
-          {/* Error Display - minimal and clean */}
+          {/* Error Display - with visible bubble */}
           {error && (
-            <div className="py-6 px-6">
+            <div className="py-6 px-6 bg-muted/30">
               <div className="max-w-2xl mx-auto">
                 <div className="flex gap-6 items-start">
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center text-xs font-medium text-destructive">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-destructive/15 text-destructive border-2 border-destructive/10 flex items-center justify-center text-xs font-semibold shadow-sm">
                     !
                   </div>
                   <div className="flex-1 min-w-0 pt-1">
-                    <div className="text-[15px] leading-7 text-destructive">
-                      {error}
+                    <div className="bg-destructive/5 border border-destructive/20 rounded-2xl px-4 py-3 shadow-sm">
+                      <div className="text-[15px] leading-7 text-destructive">
+                        {error}
+                      </div>
                     </div>
                   </div>
                 </div>
