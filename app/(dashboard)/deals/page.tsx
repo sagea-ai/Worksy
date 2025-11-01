@@ -173,7 +173,6 @@ export default function DealsPage() {
   const [availableTeams, setAvailableTeams] = useState<any[]>([])
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([])
   const [loadingTeamSelection, setLoadingTeamSelection] = useState(false)
-  const [useEnhancedChat, setUseEnhancedChat] = useState(true) // Toggle for enhanced chat
   const [systemPrompt, setSystemPrompt] = useState(`You are Worksy, an expert freelancer assistant that helps analyze projects and create detailed building plans. 
 
 When analyzing projects:
@@ -2774,19 +2773,7 @@ I have experience with similar projects and would love to discuss this opportuni
 
               {/* Content Area - Fixed Container */}
               <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
-                {/* Floating Toggle Button */}
-                <div className="absolute top-4 right-4 z-10">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setUseEnhancedChat(!useEnhancedChat)}
-                    className="shadow-lg bg-background/95 border-border hover:bg-muted/80 hover:text-foreground backdrop-blur-sm transition-all duration-200 hover:shadow-xl"
-                  >
-                    {useEnhancedChat ? '📊 Legacy Chat' : '✨ Enhanced Chat'}
-                  </Button>
-                </div>
-
-                {useEnhancedChat && selectedJob ? (
+                {selectedJob ? (
                   <EnhancedChat
                     job={{
                       id: selectedJob.internalJobId || selectedJob.id.toString(),
@@ -2822,299 +2809,25 @@ I have experience with similar projects and would love to discuss this opportuni
                     }}
                   />
                 ) : (
-                  <>
-                    {/* Messages Area - Only This Scrolls */}
-                    <div className="flex-1 overflow-y-auto overscroll-behavior-contain">
-                      <div className="p-3 lg:p-4 space-y-3 lg:space-y-4 pb-safe">
-                    {/* Chat Messages in chronological order */}
-                    {chatMessages
-                      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
-                      .map((msg) => (
-                        <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          <div className={`max-w-[90%] lg:max-w-[85%] rounded-2xl px-3 py-2 lg:px-4 lg:py-3 ${
-                            msg.type === 'user' 
-                              ? 'bg-primary text-primary-foreground rounded-br-md' 
-                              : msg.type === 'ai_generating'
-                                ? 'bg-amber-50 border border-amber-200 rounded-bl-md'
-                                : 'bg-card border border-border rounded-bl-md'
-                          }`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              {msg.type === 'user' ? (
-                                <IconUsers className="h-3 w-3 lg:h-4 lg:w-4" />
-                              ) : (
-                                <IconBrain className="h-3 w-3 lg:h-4 lg:w-4 text-primary" />
-                              )}
-                              <span className="text-xs font-medium">
-                                {msg.type === 'user' ? 'You' : 'Worksy'}
-                              </span>
-                            </div>
-                            
-                            {/* Message content */}
-                            <div className="text-sm">
-                              {msg.type === 'ai_generating' ? (
-                                <div className="flex items-center gap-2">
-                                  <div className="flex space-x-1">
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                                  </div>
-                                  <span>{msg.content}</span>
-                                </div>
-                              ) : msg.type === 'ai_question' ? (
-                                <div>
-                                  <p className="mb-3">{msg.content}</p>
-                                  {/* Choice buttons - determine which buttons to show based on what's already been completed */}
-                                  <div className="flex flex-col gap-2">
-                                    {/* Check if analysis has been generated (look for ai_analysis message) */}
-                                    {!chatMessages.some(chatMsg => chatMsg.type === 'ai_analysis') && (
-                                      <Button
-                                        onClick={() => selectedJob && handleButtonClick('analysis', selectedJob)}
-                                        className="justify-start text-left dark:hover:text-white text-sm h-auto py-2"
-                                        variant="outline"
-                                        size="sm"
-                                      >
-                                        <div className="flex flex-col items-start w-full">
-                                          <div className="flex items-center gap-2">
-                                            🧠 <span className="font-medium">Show Analysis</span>
-                                          </div>
-                                          <span className="text-xs text-muted-foreground mt-1">Market insights & technical requirements</span>
-                                        </div>
-                                      </Button>
-                                    )}
-                                    {/* Check if building plan has been generated (look for ai_building_plan message) */}
-                                    {!chatMessages.some(chatMsg => chatMsg.type === 'ai_building_plan') && (
-                                      <Button
-                                        onClick={() => selectedJob && handleButtonClick('building_steps', selectedJob)}
-                                        className="justify-start text-left dark:hover:text-white text-sm h-auto py-2"
-                                        variant="outline"
-                                        size="sm"
-                                      >
-                                        <div className="flex flex-col items-start w-full">
-                                          <div className="flex items-center gap-2">
-                                            🔨 <span className="font-medium">Show Building Steps</span>
-                                          </div>
-                                          <span className="text-xs text-muted-foreground mt-1">Detailed implementation plan</span>
-                                        </div>
-                                      </Button>
-                                    )}
-                                    {/* Add Call Teams button when appropriate */}
-                                    {msg.content.includes('call your teams') && 
-                                     selectedJob?.userJobState !== 'TEAM_SUMMONED' && (
-                                      <Button
-                                        onClick={handleCallTeams}
-                                        className="justify-start text-left dark:hover:text-white text-sm h-auto py-2"
-                                        variant="outline"
-                                        size="sm"
-                                      >
-                                        <div className="flex flex-col items-start w-full">
-                                          <div className="flex items-center gap-2">
-                                            🚀 <span className="font-medium">Call Teams</span>
-                                          </div>
-                                          <span className="text-xs text-muted-foreground mt-1">Summon collaboration network</span>
-                                        </div>
-                                      </Button>
-                                    )}
-                                    
-                                    {/* Add "No thanks" option for team calling */}
-                                    {msg.content.includes('call your teams') && (
-                                      <Button
-                                        onClick={() => {
-                                          const noTeamsMessage: ChatMessage = {
-                                            id: generateMessageId(selectedJob!.id.toString(), 'user_choice'),
-                                            type: 'user_choice',
-                                            content: `User selected: no_teams`,
-                                            choice: 'no_teams',
-                                            timestamp: new Date()
-                                          }
-                                          setChatMessages(prev => [...prev, noTeamsMessage])
-                                          
-                                          setTimeout(() => {
-                                            setChatMessages(prev => [...prev, {
-                                              id: generateMessageId(selectedJob!.id.toString(), 'ai_response'),
-                                              type: 'ai',
-                                              content: "No problem! You can handle this project solo. Your proposal is ready and you can manage the project independently when the client responds.",
-                                              timestamp: new Date()
-                                            }])
-                                          }, 500)
-                                        }}
-                                        className="justify-start text-left dark:hover:text-white"
-                                        variant="ghost"
-                                        size="sm"
-                                      >
-                                        ⚡ Work Solo
-                                        <span className="text-xs text-muted-foreground ml-2">Handle this project independently</span>
-                                      </Button>
-                                    )}
-
-                                    {chatMessages.some(chatMsg => chatMsg.type === 'ai_analysis') && 
-                                     chatMessages.some(chatMsg => chatMsg.type === 'ai_building_plan') && 
-                                     !msg.content.includes('call your teams') && (
-                                      <Button
-                                        onClick={() => {
-                                          const noThanksMessage: ChatMessage = {
-                                            id: generateMessageId(selectedJob!.id.toString(), 'user_choice'),
-                                            type: 'user_choice',
-                                            content: `User selected: no_thanks`,
-                                            choice: 'no_thanks',
-                                            timestamp: new Date()
-                                          }
-                                          setChatMessages(prev => [...prev, noThanksMessage])
-                                          
-                                          setTimeout(() => {
-                                            setChatMessages(prev => [...prev, {
-                                              id: generateMessageId(selectedJob!.id.toString(), 'ai_response'),
-                                              type: 'ai',
-                                              content: "Perfect! You now have both the analysis and building plan. You can submit your proposal when ready.",
-                                              timestamp: new Date()
-                                            }])
-                                          }, 500)
-                                        }}
-                                        className="justify-start text-left dark:hover:text-white"
-                                        variant="outline"
-                                        size="sm"
-                                      >
-                                        ✅ All set, thanks!
-                                        <span className="text-xs text-muted-foreground ml-2">Ready to submit proposal</span>
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              ) : msg.type === 'user_choice' ? (
-                                <div className="text-sm italic text-muted-foreground">
-                                  {msg.choice === 'analysis' ? '🧠 Requested Analysis' : 
-                                   msg.choice === 'building_steps' ? '🔨 Requested Building Steps' :
-                                   msg.choice === 'call_teams' ? '🚀 Called Teams for Collaboration' :
-                                   msg.choice === 'no_teams' ? '⚡ Chose to Work Solo' :
-                                   msg.choice === 'no_thanks' ? '✅ Ready to Proceed' :
-                                   'Made a choice'}
-                                </div>
-                              ) : msg.type === 'ai_analysis' && msg.data ? (
-                                <div>
-                                  <p className="mb-3">{msg.content}</p>
-                                  {renderAnalysisData(msg.data)}
-                                </div>
-                              ) : msg.type === 'ai_building_plan' && msg.data ? (
-                                <div>
-                                  <p className="mb-3">{msg.content}</p>
-                                  {renderBuildingPlanData(msg.data)}
-                                </div>
-                              ) : (
-                                <p style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        )
-                      )}
-
-                      </div>
-                    </div>
-
-                        {/* Floating Edit System Prompt Button */}
-                    <div className="absolute bottom-20 right-4 z-10">
-                      <Dialog open={systemPromptDialogOpen} onOpenChange={setSystemPromptDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="shadow-lg bg-background/95 border-border hover:bg-muted/80 hover:text-foreground backdrop-blur-sm transition-all duration-200 hover:shadow-xl"
-                          >
-                            <IconSettings className="h-4 w-4 mr-2" />
-                            Edit System Prompt
-                          </Button>
-                        </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px]">
-                      <DialogHeader>
-                        <DialogTitle>Edit System Prompt</DialogTitle>
-                        <DialogDescription>
-                          Customize the AI system prompt to change how the assistant analyzes and responds to projects.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                          <label htmlFor="system-prompt" className="text-sm font-medium">
-                            System Prompt
-                          </label>
-                          <Textarea
-                            id="system-prompt"
-                            placeholder="Enter your custom system prompt here..."
-                            value={systemPrompt}
-                            onChange={(e) => setSystemPrompt(e.target.value)}
-                            className="min-h-[200px] resize-none"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            This prompt will be used to guide the AI's analysis and responses for this project.
-                          </p>
-                          <div className="flex justify-end">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSystemPrompt(`You are Worksy, an expert freelancer assistant that helps analyze projects and create detailed building plans. 
-
-When analyzing projects:
-- Focus on market opportunities and technical feasibility
-- Identify key requirements and potential challenges
-- Provide actionable business insights
-- Suggest competitive advantages and differentiators
-
-When creating building plans:
-- Break down complex projects into manageable steps
-- Estimate realistic timeframes for each phase
-- List required tools, technologies, and resources
-- Focus on deliverables and milestones
-
-Always be helpful, professional, and provide practical recommendations that help users win projects and deliver excellent results.`)
-                              }}
-                              className="text-xs"
-                            >
-                              Reset to Default
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <DialogFooter>
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center p-8">
+                      <IconBusinessplan className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Select a Project</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Choose a project from the list to get AI-powered building steps and analysis
+                      </p>
+                      <div className="lg:hidden">
                         <Button
                           variant="outline"
-                          onClick={() => setSystemPromptDialogOpen(false)}
+                          onClick={() => setShowMobileChat(false)}
+                          className="flex items-center gap-2"
                         >
-                          Cancel
+                          <IconArrowLeft className="h-4 w-4" />
+                          View Available Projects
                         </Button>
-                        <Button
-                          onClick={handleSaveSystemPrompt}
-                        >
-                          Save Changes
-                        </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-
-                  {/* Chat Input Area - Fixed */}
-                  <div className="flex-shrink-0 border-t border-border bg-card p-3 lg:p-4 safe-area-inset-bottom">
-                    <div className="flex items-end gap-2">
-                      <div className="flex-1">
-                        <Input
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          onKeyPress={handleKeyPress}
-                          placeholder="Type a message..."
-                          className="h-10 lg:h-11 text-sm border-0 bg-muted/30 focus:bg-background transition-colors"
-                          disabled={analyzingJob || generatingSteps}
-                        />
                       </div>
-                      <Button 
-                        onClick={handleSendMessage}
-                        disabled={!message.trim() || analyzingJob || generatingSteps}
-                        className="h-10 lg:h-11 px-3 lg:px-4 flex-shrink-0 rounded-full"
-                        size="sm"
-                      >
-                        <IconSend className="h-4 w-4" />
-                        <span className="hidden lg:inline ml-2">Send</span>
-                      </Button>
                     </div>
                   </div>
-                  </>
                 )}
               </div>
             </>

@@ -49,7 +49,7 @@ export interface JobFitRequest {
 
 export async function analyzeJobFit(
   request: JobFitRequest,
-  model: string = 'openai/gpt-4o'
+  model: string = 'openai/gpt-4o-mini'
 ): Promise<JobFitAnalysis> {
   const aiModel = getAIModel(model);
 

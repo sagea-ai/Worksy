@@ -8,7 +8,7 @@ const isUsingAIGateway = !!process.env.AI_GATEWAY_API_KEY;
 const aiGatewayBaseURL = 'https://ai-gateway.vercel.sh/v1';
 
 // Default model configuration
-const DEFAULT_MODEL = process.env.AI_MODEL || 'openai/gpt-4o';
+const DEFAULT_MODEL = process.env.AI_MODEL || 'openai/gpt-3.5-turbo';
 
 export const groq = createGroq({
   apiKey: process.env.AI_GATEWAY_API_KEY ?? process.env.GROQ_API_KEY,

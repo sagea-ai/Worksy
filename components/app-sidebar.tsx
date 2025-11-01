@@ -9,7 +9,6 @@ import {
   IconUser,
   IconBusinessplan,
   IconCalendar,
-  IconUsers,
   IconExternalLink,
   IconFileText,
   IconCloudDataConnection,
@@ -48,11 +47,6 @@ const navItems = [
     title: "Proposals",
     url: "/proposals",
     icon: IconFileText,
-  },
-  {
-    title: "Teams",
-    url: "/teams",
-    icon: IconUsers,
   },
   {
     title: "SAGE",
