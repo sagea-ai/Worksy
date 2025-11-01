@@ -74,7 +74,6 @@ Create a compelling, personalized pitch that showcases why this freelancer is pe
       model: aiModel,
       system: systemPrompt,
       prompt: userPrompt,
-      maxTokens: 500,
     });
 
     return result.text.trim();

@@ -70,7 +70,6 @@ Make it detailed enough that the AI tool can build a complete, functional MVP de
       model: aiModel,
       system: systemPrompt,
       prompt: userPrompt,
-      maxTokens: 2000,
     });
 
     const prompt = result.text.trim();

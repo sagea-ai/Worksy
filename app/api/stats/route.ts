@@ -61,10 +61,16 @@ const isValidJobDecision = (d: any): d is SafeJobDecision => {
   return d && typeof d === 'object' && d.job && typeof d.job === 'object';
 };
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy OpenAI initialization - only create when needed and API key is available
+const getOpenAI = () => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  return new OpenAI({
+    apiKey,
+  });
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -362,6 +368,7 @@ export async function GET(request: NextRequest) {
     // Generate AI insights after all calculations are complete
     const generateAIInsightsWithData = async () => {
       try {
+        const openai = getOpenAI();
         if (!openai || !process.env.OPENAI_API_KEY) {
           return {
             generalInsights: [],

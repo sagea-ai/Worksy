@@ -37,9 +37,10 @@ export async function POST(request: NextRequest) {
         userType: "STUDENT",
         onboardingCompleted: true,
         profile: {
-          isNot: null,
-          selectedSkills: {
-            hasSome: requiredSkills,
+          is: {
+            selectedSkills: {
+              hasSome: requiredSkills,
+            },
           },
         },
       },
