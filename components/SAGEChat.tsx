@@ -124,159 +124,144 @@ export default function SAGEChat() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background rounded-lg border overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <IconBrain className="h-5 w-5 text-primary" />
+    <div className="flex flex-col h-full max-w-3xl mx-auto bg-background">
+      {/* Ultra-minimal header - Jony Ive style */}
+      <div className="flex items-center justify-center py-4 border-b border-border/5">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+            <IconBrain className="h-3 w-3 text-primary" />
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">SAGE</h2>
-            <p className="text-muted-foreground text-sm">Your AI Growth Advisor</p>
-          </div>
+          <span className="text-sm font-medium text-muted-foreground tracking-wide">SAGE</span>
         </div>
         <Button 
-          variant="outline" 
+          variant="ghost" 
           size="sm" 
           onClick={clearMessages}
+          className="absolute right-4 text-muted-foreground/60 hover:text-muted-foreground transition-colors text-xs"
         >
-          Clear Chat
+          New chat
         </Button>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3`}>
-              {/* Avatar */}
-              <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                msg.role === 'user' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground'
-              }`}>
-                {msg.role === 'user' ? (
-                  <IconUsers className="w-4 h-4" />
-                ) : (
-                  <IconBrain className="w-4 h-4" />
-                )}
-              </div>
-              
-              {/* Message Bubble */}
-              <div className={`relative p-4 rounded-lg ${
-                msg.role === 'user' 
-                  ? 'bg-primary text-primary-foreground ml-12' 
-                  : 'bg-muted text-foreground mr-12'
-              }`}>
-                {msg.role === 'assistant' && (
-                  <div className="font-semibold text-primary text-sm mb-2 flex items-center">
-                    <IconBrain className="w-4 h-4 mr-2" />
-                    SAGE
+      {/* Messages - ChatGPT style with Jony Ive proportions */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-full">
+          {messages.map((msg, index) => (
+            <div key={msg.id} className={`group py-6 px-6 ${
+              msg.role === 'assistant' ? 'bg-muted/20' : ''
+            } ${index === 0 ? 'pt-8' : ''}`}>
+              <div className="max-w-2xl mx-auto">
+                <div className="flex gap-6 items-start">
+                  {/* Avatar - minimal and precise */}
+                  <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                    msg.role === 'user' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-primary/10 text-primary'
+                  }`}>
+                    {msg.role === 'user' ? 'Y' : 'S'}
                   </div>
-                )}
-                <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                  {msg.content}
-                </div>
-                <div className={`text-xs mt-2 ${
-                  msg.role === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                }`}>
-                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  
+                  {/* Message Content - perfect typography */}
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="text-[15px] leading-7 text-foreground whitespace-pre-wrap font-normal">
+                      {msg.content}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Loading indicator */}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
-                <IconBrain className="w-4 h-4" />
-              </div>
-              <div className="bg-muted p-4 rounded-lg mr-12">
-                <div className="font-semibold text-primary text-sm mb-2 flex items-center">
-                  <IconBrain className="w-4 h-4 mr-2" />
-                  SAGE
-                </div>
-                <div className="flex items-center space-x-3">
-                  <IconLoader2 className="w-4 h-4 animate-spin text-primary" />
-                  <span className="text-sm text-muted-foreground">Analyzing your freelance data...</span>
+          {/* Loading indicator - subtle and elegant */}
+          {isLoading && (
+            <div className="group py-6 px-6 bg-muted/20">
+              <div className="max-w-2xl mx-auto">
+                <div className="flex gap-6 items-start">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                    S
+                  </div>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground/40 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Error Display */}
-        {error && (
-          <div className="flex justify-center">
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 max-w-md">
-              <div className="text-sm text-destructive font-medium">{error}</div>
+          {/* Error Display - minimal and clean */}
+          {error && (
+            <div className="py-6 px-6">
+              <div className="max-w-2xl mx-auto">
+                <div className="flex gap-6 items-start">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center text-xs font-medium text-destructive">
+                    !
+                  </div>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="text-[15px] leading-7 text-destructive">
+                      {error}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Quick Questions (show only at start) */}
+      {/* Quick Questions - subtle suggestions */}
       {messages.length <= 1 && (
-        <div className="p-4 bg-muted/50 border-t">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center">
-              <span className="text-primary text-xs">💡</span>
+        <div className="px-6 pb-6">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex flex-wrap gap-2">
+              {quickQuestions.map((question, index) => (
+                <button
+                  key={index}
+                  onClick={() => onSend(question)}
+                  disabled={isLoading}
+                  className="text-sm text-muted-foreground hover:text-foreground border border-border hover:border-primary/30 rounded-full px-4 py-2 transition-all duration-200 hover:bg-muted/20 disabled:opacity-50"
+                >
+                  {question}
+                </button>
+              ))}
             </div>
-            <span className="text-sm text-foreground font-medium">Quick questions to get started:</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            {quickQuestions.map((question, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => onSend(question)}
-                disabled={isLoading}
-                className="text-xs h-9 px-3 justify-start"
-              >
-                {question}
-              </Button>
-            ))}
           </div>
         </div>
       )}
 
-      {/* Input Area */}
-      <div className="p-4 bg-card border-t">
-        <div className="flex gap-3">
-          <div className="flex-1 relative">
+      {/* Input Area - ChatGPT inspired with perfect proportions */}
+      <div className="border-t border-border/10 bg-background">
+        <div className="max-w-2xl mx-auto px-6 py-4">
+          <div className="relative">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything about your freelance growth..."
+              placeholder="Message SAGE"
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="min-h-14 max-h-32 resize-none rounded-lg px-3 py-3 text-sm leading-relaxed"
+              className="min-h-[52px] max-h-40 resize-none rounded-3xl border border-border bg-background px-5 py-4 pr-14 text-[15px] leading-6 placeholder:text-muted-foreground/60 focus:border-primary/30 focus:outline-none focus:ring-0 transition-colors shadow-sm"
+              rows={1}
             />
+            <Button
+              onClick={handleSendClick}
+              disabled={isLoading || !input.trim()}
+              size="sm"
+              className="absolute right-2 top-2 h-9 w-9 p-0 rounded-full bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground transition-all duration-150"
+            >
+              {isLoading ? (
+                <IconLoader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <IconSend className="w-4 h-4" />
+              )}
+            </Button>
           </div>
-          <Button
-            onClick={handleSendClick}
-            disabled={isLoading || !input.trim()}
-            className="px-4 py-3 self-end"
-          >
-            {isLoading ? (
-              <IconLoader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <IconSend className="w-5 h-5" />
-            )}
-          </Button>
-        </div>
-        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
-          <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-primary text-xs">💡</span>
-          </div>
-          <span>Ask about acceptance rates, best skills, market opportunities, or growth strategies</span>
         </div>
       </div>
     </div>
