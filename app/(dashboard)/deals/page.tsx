@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -296,7 +296,55 @@ Always be helpful, professional, and provide practical recommendations that help
     setTimeout(() => storeChatHistory(), 500)
   }
 
-  const fetchJobs = async (showRefreshing = false, loadMore = false) => {
+  const storeChatHistory = useCallback(async () => {
+    if (!selectedJob || !selectedJob.internalJobId || pendingChatStorage) return
+    
+    const currentState = selectedJob.userJobState || 'NEW'
+    const shouldStoreChatHistory = ['ANALYZING', 'PROPOSED', 'PROPOSING'].includes(currentState)
+    
+    if (!shouldStoreChatHistory || chatMessages.length === 0) return
+    
+    setPendingChatStorage(true)
+    
+    try {
+      const chatHistoryToStore = chatMessages.map((msg, index) => ({
+        id: msg.id,
+        type: msg.type,
+        content: msg.content,
+        timestamp: msg.timestamp.toISOString(),
+        sequence: index + 1
+      }))
+
+      const response = await fetch('/api/jobs/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'store_chat_history',
+          jobData: { 
+            id: selectedJob.id,
+            platform: selectedJob.platform,
+            internalJobId: selectedJob.internalJobId
+          },
+          chatHistory: chatHistoryToStore
+        })
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        console.log(`✅ Chat history stored with ${chatHistoryToStore.length} messages`)
+      } else {
+        console.error('❌ Failed to store chat history:', result.error)
+      }
+    } catch (error) {
+      console.error('❌ Error storing chat history:', error)
+    } finally {
+      setPendingChatStorage(false)
+    }
+  }, [selectedJob, pendingChatStorage, chatMessages])
+
+  const fetchJobs = useCallback(async (showRefreshing = false, loadMore = false) => {
     try {
       if (showRefreshing) {
         setRefreshing(true)
@@ -374,11 +422,11 @@ Always be helpful, professional, and provide practical recommendations that help
       setRefreshing(false)
       setLoadingMore(false)
     }
-  }
+  }, [offset])
 
   useEffect(() => {
     fetchJobs()
-  }, [])
+  }, [fetchJobs])
 
   useEffect(() => {
     if (selectedJob && chatMessages.length > 0 && selectedJob.internalJobId) {
@@ -393,7 +441,7 @@ Always be helpful, professional, and provide practical recommendations that help
         return () => clearTimeout(timeoutId)
       }
     }
-  }, [chatMessages, selectedJob])
+  }, [chatMessages, selectedJob, storeChatHistory])
 
   useEffect(() => {
     console.log('🔄 State Change - jobAnalysis:', jobAnalysis ? 'HAS DATA' : 'NULL', jobAnalysis)
@@ -898,7 +946,7 @@ I have experience with similar projects and would love to discuss this opportuni
             if (result.job.chatHistory && result.job.chatHistory.messages && Array.isArray(result.job.chatHistory.messages)) {
               console.log('📱 Loading chat history from DB...')
               const loadedChatMessages = result.job.chatHistory.messages.map((msg: any) => {
-                let messageData = {
+                const messageData = {
                   id: msg.id,
                   type: msg.type,
                   content: msg.content,
@@ -2096,54 +2144,6 @@ I have experience with similar projects and would love to discuss this opportuni
       await updateJobState('ERROR', 'Exception occurred during proposal submission')
       updateLocalJobState(selectedJob.id, 'ERROR')
       alert('An error occurred while submitting the proposal.')
-    }
-  }
-
-  const storeChatHistory = async () => {
-    if (!selectedJob || !selectedJob.internalJobId || pendingChatStorage) return
-    
-    const currentState = selectedJob.userJobState || 'NEW'
-    const shouldStoreChatHistory = ['ANALYZING', 'PROPOSED', 'PROPOSING'].includes(currentState)
-    
-    if (!shouldStoreChatHistory || chatMessages.length === 0) return
-    
-    setPendingChatStorage(true)
-    
-    try {
-      const chatHistoryToStore = chatMessages.map((msg, index) => ({
-        id: msg.id,
-        type: msg.type,
-        content: msg.content,
-        timestamp: msg.timestamp.toISOString(),
-        sequence: index + 1
-      }))
-
-      const response = await fetch('/api/jobs/manage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'store_chat_history',
-          jobData: { 
-            id: selectedJob.id,
-            platform: selectedJob.platform,
-            internalJobId: selectedJob.internalJobId
-          },
-          chatHistory: chatHistoryToStore
-        })
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        console.log(`✅ Chat history stored with ${chatHistoryToStore.length} messages`)
-      } else {
-        console.error('❌ Failed to store chat history:', result.error)
-      }
-    } catch (error) {
-      console.error('❌ Error storing chat history:', error)
-    } finally {
-      setPendingChatStorage(false)
     }
   }
 

@@ -60,13 +60,12 @@ export const Navbar = () => {
         <NavigationMenu className="mx-auto">
           <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
             <NavigationMenuItem className="font-bold flex">
-              <a
-                rel="noreferrer noopener"
+              <Link
                 href="/"
                 className="ml-2 font-bold text-xl flex"
               >
                 Worksy
-              </a>
+              </Link>
             </NavigationMenuItem>
             <span className="flex md:hidden"></span>
             <nav className="hidden md:flex gap-2">
@@ -119,14 +118,13 @@ export const Navbar = () => {
       <NavigationMenu className="mx-auto">
         <NavigationMenuList className="container h-14 px-4 w-screen flex justify-between ">
           <NavigationMenuItem className="font-bold flex">
-            <a
-              rel="noreferrer noopener"
+            <Link
               href="/"
               className="ml-2 font-bold text-xl flex"
             >
               <LogoIcon />
               Worksy
-            </a>
+            </Link>
           </NavigationMenuItem>
 
           {/* mobile */}

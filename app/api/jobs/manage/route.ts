@@ -208,7 +208,7 @@ async function handleJobSelection(userId: string, jobData: any) {
 
 // Helper function to get internal user ID from Clerk ID
 async function getInternalUserId(clerkId: string): Promise<string | null> {
-  let user = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { clerkId },
     select: { id: true },
   });
