@@ -35,6 +35,7 @@ interface StatsData {
     totalDecisions: number
     acceptedJobs: number
     rejectedJobs: number
+    pendingJobs: number
     acceptanceRate: number
     rejectionRate: number
     averageFitScore: number
@@ -93,6 +94,30 @@ interface StatsData {
     optimalBudgetRange: string
   }
 }
+
+// Safe data handling utilities for frontend
+const safeNumber = (value: any, defaultValue: number = 0): number => {
+  const num = Number(value);
+  return isNaN(num) || !isFinite(num) ? defaultValue : num;
+};
+
+const safeString = (value: any, defaultValue: string = 'N/A'): string => {
+  return typeof value === 'string' && value.trim() ? value : defaultValue;
+};
+
+const safeArray = (value: any): any[] => {
+  return Array.isArray(value) ? value : [];
+};
+
+const formatCurrency = (value: any): string => {
+  const num = safeNumber(value);
+  return num === 0 ? '$0' : `$${num.toLocaleString()}`;
+};
+
+const formatPercentage = (value: any): string => {
+  const num = safeNumber(value);
+  return `${num.toFixed(1)}%`;
+};
 
 export default function StatsPage() {
   const [stats, setStats] = useState<StatsData | null>(null)
@@ -183,13 +208,43 @@ export default function StatsPage() {
     )
   }
 
-  if (!stats) {
+  if (!stats || !stats.basicStats) {
     return (
       <div className="container mx-auto py-6 px-4 max-w-7xl">
         <div className="text-center py-12">
           <IconChartBar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">No Data Available</h2>
           <p className="text-muted-foreground">Start analyzing jobs to see your stats here!</p>
+          <Button 
+            onClick={() => fetchStats()}
+            className="mt-4"
+            variant="outline"
+          >
+            <IconRefresh className="h-4 w-4 mr-2" />
+            Refresh Stats
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if we have any meaningful data
+  const hasData = safeNumber(stats.basicStats?.totalDecisions) > 0 || 
+                  safeArray(stats.skillsAnalysis).length > 0 || 
+                  safeArray(stats.platformAnalysis).length > 0;
+
+  if (!hasData) {
+    return (
+      <div className="container mx-auto py-6 px-4 max-w-7xl">
+        <div className="text-center py-12">
+          <IconTarget className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Ready to Track Your Progress</h2>
+          <p className="text-muted-foreground mb-4">
+            Your analytics dashboard is ready! Start by analyzing some jobs to see insights about your decision patterns.
+          </p>
+          <div className="text-sm text-muted-foreground">
+            Visit the <strong>Deals</strong> page to analyze job opportunities and build your statistics.
+          </div>
         </div>
       </div>
     )
@@ -221,12 +276,12 @@ export default function StatsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Acceptance Rate</CardTitle>
-            {getTrendIcon(stats.basicStats.trend)}
+            {getTrendIcon(safeString(stats.basicStats?.trend, 'stable'))}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.basicStats.acceptanceRate}%</div>
+            <div className="text-2xl font-bold">{formatPercentage(stats.basicStats?.acceptanceRate)}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.basicStats.acceptedJobs} of {stats.basicStats.totalDecisions} jobs
+              {safeNumber(stats.basicStats?.acceptedJobs)} of {safeNumber(stats.basicStats?.totalDecisions)} jobs
             </p>
           </CardContent>
         </Card>
@@ -237,7 +292,7 @@ export default function StatsPage() {
             <IconTarget className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.basicStats.averageFitScore}/100</div>
+            <div className="text-2xl font-bold">{safeNumber(stats.basicStats?.averageFitScore).toFixed(1)}/100</div>
             <p className="text-xs text-muted-foreground">
               Average job compatibility
             </p>
@@ -250,7 +305,7 @@ export default function StatsPage() {
             <IconCoin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.monetaryStats.totalPotentialEarnings.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats.monetaryStats?.totalPotentialEarnings)}</div>
             <p className="text-xs text-muted-foreground">
               From accepted jobs
             </p>
@@ -263,9 +318,9 @@ export default function StatsPage() {
             <IconAlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.monetaryStats.missedEarnings.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{formatCurrency(stats.monetaryStats?.missedEarnings)}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.monetaryStats.opportunityCost}% opportunity cost
+              {formatPercentage(stats.monetaryStats?.opportunityCost)} opportunity cost
             </p>
           </CardContent>
         </Card>
@@ -340,28 +395,28 @@ export default function StatsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {stats.skillsAnalysis.slice(0, 10).map((skill, index) => (
-                  <div key={skill.skill} className="flex items-center justify-between p-3 border rounded-lg">
+                {safeArray(stats.skillsAnalysis).slice(0, 10).map((skill, index) => (
+                  <div key={safeString(skill?.skill, `skill-${index}`)} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">{skill.skill}</h4>
+                        <h4 className="font-medium">{safeString(skill?.skill)}</h4>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{skill.total} jobs</span>
-                          <span>Avg ${skill.avgBudget.toFixed(0)}</span>
+                          <span>{safeNumber(skill?.total)} jobs</span>
+                          <span>Avg {formatCurrency(skill?.avgBudget)}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
-                          <Progress value={skill.acceptanceRate} className="h-2" />
+                          <Progress value={safeNumber(skill?.acceptanceRate)} className="h-2" />
                         </div>
                         <div className="text-sm font-medium min-w-0">
-                          {skill.acceptanceRate.toFixed(1)}% acceptance
+                          {formatPercentage(skill?.acceptanceRate)} acceptance
                         </div>
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>{skill.accepted} accepted</span>
-                        <span>{skill.rejected} rejected</span>
-                        <span>Fit: {skill.avgFitScore.toFixed(1)}/100</span>
+                        <span>{safeNumber(skill?.accepted)} accepted</span>
+                        <span>{safeNumber(skill?.rejected)} rejected</span>
+                        <span>Fit: {safeNumber(skill?.avgFitScore).toFixed(1)}/100</span>
                       </div>
                     </div>
                   </div>
@@ -387,28 +442,28 @@ export default function StatsPage() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-muted-foreground">Last 30 Days</span>
                       <div className="flex items-center gap-1">
-                        {getTrendIcon(stats.basicStats.trend)}
-                        <span className="font-medium">{stats.basicStats.recentAcceptanceRate}%</span>
+                        {getTrendIcon(safeString(stats.basicStats?.trend, 'stable'))}
+                        <span className="font-medium">{formatPercentage(stats.basicStats?.recentAcceptanceRate)}</span>
                       </div>
                     </div>
-                    <Progress value={stats.basicStats.recentAcceptanceRate} className="h-2" />
+                    <Progress value={safeNumber(stats.basicStats?.recentAcceptanceRate)} className="h-2" />
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-muted-foreground">Last 7 Days</span>
                       <div className="flex items-center gap-1">
-                        {getTrendIcon(stats.basicStats.weeklyTrend)}
-                        <span className="font-medium">{stats.basicStats.weeklyAcceptanceRate}%</span>
+                        {getTrendIcon(safeString(stats.basicStats?.weeklyTrend, 'stable'))}
+                        <span className="font-medium">{formatPercentage(stats.basicStats?.weeklyAcceptanceRate)}</span>
                       </div>
                     </div>
-                    <Progress value={stats.basicStats.weeklyAcceptanceRate} className="h-2" />
+                    <Progress value={safeNumber(stats.basicStats?.weeklyAcceptanceRate)} className="h-2" />
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-muted-foreground">Overall Average</span>
-                      <span className="font-medium">{stats.basicStats.acceptanceRate}%</span>
+                      <span className="font-medium">{formatPercentage(stats.basicStats?.acceptanceRate)}</span>
                     </div>
-                    <Progress value={stats.basicStats.acceptanceRate} className="h-2" />
+                    <Progress value={safeNumber(stats.basicStats?.acceptanceRate)} className="h-2" />
                   </div>
                 </div>
               </CardContent>
@@ -422,20 +477,26 @@ export default function StatsPage() {
               <CardContent>
                 <div className="text-center">
                   <div className="text-3xl font-bold mb-2">
-                    {stats.basicStats.avgDecisionTimeHours < 1 
-                      ? `${Math.round(stats.basicStats.avgDecisionTimeHours * 60)}m`
-                      : `${stats.basicStats.avgDecisionTimeHours.toFixed(1)}h`}
+                    {(() => {
+                      const hours = safeNumber(stats.basicStats?.avgDecisionTimeHours);
+                      return hours < 1 
+                        ? `${Math.round(hours * 60)}m`
+                        : `${hours.toFixed(1)}h`;
+                    })()}
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Average decision time
                   </p>
                   <div className="mt-4 p-3 bg-muted rounded-lg">
                     <p className="text-xs text-muted-foreground">
-                      {stats.basicStats.avgDecisionTimeHours < 2 
-                        ? "⚡ Very fast decision making"
-                        : stats.basicStats.avgDecisionTimeHours < 12
-                        ? "✅ Good response time"
-                        : "⏰ Consider faster evaluation"}
+                      {(() => {
+                        const hours = safeNumber(stats.basicStats?.avgDecisionTimeHours);
+                        return hours < 2 
+                          ? "⚡ Very fast decision making"
+                          : hours < 12
+                          ? "✅ Good response time"
+                          : "⏰ Consider faster evaluation";
+                      })()}
                     </p>
                   </div>
                 </div>
