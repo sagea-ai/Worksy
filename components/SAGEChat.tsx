@@ -124,54 +124,53 @@ export default function SAGEChat() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="flex flex-col h-full bg-background rounded-lg border overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <IconBrain className="h-7 w-7 text-white" />
+      <div className="flex items-center justify-between p-4 border-b bg-card">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <IconBrain className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold">SAGE</h2>
-            <p className="text-purple-100 text-sm">Your AI Growth Advisor</p>
+            <h2 className="text-lg font-semibold text-foreground">SAGE</h2>
+            <p className="text-muted-foreground text-sm">Your AI Growth Advisor</p>
           </div>
         </div>
         <Button 
-          variant="ghost" 
+          variant="outline" 
           size="sm" 
-          onClick={clearMessages} 
-          className="text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+          onClick={clearMessages}
         >
           Clear Chat
         </Button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-gray-50/50 to-white">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`flex max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3`}>
+            <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3`}>
               {/* Avatar */}
-              <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${
+              <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                 msg.role === 'user' 
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
-                  : 'bg-gradient-to-br from-purple-500 to-indigo-600'
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted text-muted-foreground'
               }`}>
                 {msg.role === 'user' ? (
-                  <IconUsers className="w-5 h-5 text-white" />
+                  <IconUsers className="w-4 h-4" />
                 ) : (
-                  <IconBrain className="w-5 h-5 text-white" />
+                  <IconBrain className="w-4 h-4" />
                 )}
               </div>
               
               {/* Message Bubble */}
-              <div className={`relative p-5 rounded-2xl shadow-sm ${
+              <div className={`relative p-4 rounded-lg ${
                 msg.role === 'user' 
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' 
-                  : 'bg-white border border-gray-100 shadow-md'
-              } ${msg.role === 'user' ? 'rounded-tr-md' : 'rounded-tl-md'}`}>
+                  ? 'bg-primary text-primary-foreground ml-12' 
+                  : 'bg-muted text-foreground mr-12'
+              }`}>
                 {msg.role === 'assistant' && (
-                  <div className="font-semibold text-purple-600 text-sm mb-3 flex items-center">
+                  <div className="font-semibold text-primary text-sm mb-2 flex items-center">
                     <IconBrain className="w-4 h-4 mr-2" />
                     SAGE
                   </div>
@@ -179,8 +178,8 @@ export default function SAGEChat() {
                 <div className="text-sm whitespace-pre-wrap leading-relaxed">
                   {msg.content}
                 </div>
-                <div className={`text-xs mt-3 ${
-                  msg.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                <div className={`text-xs mt-2 ${
+                  msg.role === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
                 }`}>
                   {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
@@ -193,17 +192,17 @@ export default function SAGEChat() {
         {isLoading && (
           <div className="flex justify-start">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-sm">
-                <IconBrain className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
+                <IconBrain className="w-4 h-4" />
               </div>
-              <div className="bg-white border border-gray-100 shadow-md p-5 rounded-2xl rounded-tl-md">
-                <div className="font-semibold text-purple-600 text-sm mb-3 flex items-center">
+              <div className="bg-muted p-4 rounded-lg mr-12">
+                <div className="font-semibold text-primary text-sm mb-2 flex items-center">
                   <IconBrain className="w-4 h-4 mr-2" />
                   SAGE
                 </div>
                 <div className="flex items-center space-x-3">
-                  <IconLoader2 className="w-5 h-5 animate-spin text-purple-500" />
-                  <span className="text-sm text-gray-600">Analyzing your freelance data...</span>
+                  <IconLoader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span className="text-sm text-muted-foreground">Analyzing your freelance data...</span>
                 </div>
               </div>
             </div>
@@ -213,8 +212,8 @@ export default function SAGEChat() {
         {/* Error Display */}
         {error && (
           <div className="flex justify-center">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 max-w-md">
-              <div className="text-sm text-red-700 font-medium">{error}</div>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 max-w-md">
+              <div className="text-sm text-destructive font-medium">{error}</div>
             </div>
           </div>
         )}
@@ -224,14 +223,14 @@ export default function SAGEChat() {
 
       {/* Quick Questions (show only at start) */}
       {messages.length <= 1 && (
-        <div className="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-t border-gray-100">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">💡</span>
+        <div className="p-4 bg-muted/50 border-t">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center">
+              <span className="text-primary text-xs">💡</span>
             </div>
-            <span className="text-sm text-gray-700 font-semibold">Quick questions to get started:</span>
+            <span className="text-sm text-foreground font-medium">Quick questions to get started:</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {quickQuestions.map((question, index) => (
               <Button
                 key={index}
@@ -239,7 +238,7 @@ export default function SAGEChat() {
                 size="sm"
                 onClick={() => onSend(question)}
                 disabled={isLoading}
-                className="text-xs h-10 px-4 bg-white hover:bg-purple-50 hover:border-purple-300 border-gray-200 transition-all duration-200 font-medium text-gray-700 hover:text-purple-700"
+                className="text-xs h-9 px-3 justify-start"
               >
                 {question}
               </Button>
@@ -249,8 +248,8 @@ export default function SAGEChat() {
       )}
 
       {/* Input Area */}
-      <div className="p-6 bg-white border-t border-gray-100">
-        <div className="flex gap-4">
+      <div className="p-4 bg-card border-t">
+        <div className="flex gap-3">
           <div className="flex-1 relative">
             <Textarea
               value={input}
@@ -258,13 +257,13 @@ export default function SAGEChat() {
               placeholder="Ask me anything about your freelance growth..."
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              className="min-h-[56px] max-h-32 resize-none border-gray-200 focus:border-purple-400 focus:ring-purple-200 rounded-xl px-4 py-4 text-sm leading-relaxed placeholder:text-gray-400"
+              className="min-h-14 max-h-32 resize-none rounded-lg px-3 py-3 text-sm leading-relaxed"
             />
           </div>
           <Button
             onClick={handleSendClick}
             disabled={isLoading || !input.trim()}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 self-end"
+            className="px-4 py-3 self-end"
           >
             {isLoading ? (
               <IconLoader2 className="w-5 h-5 animate-spin" />
@@ -273,9 +272,9 @@ export default function SAGEChat() {
             )}
           </Button>
         </div>
-        <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
-          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center">
-            <span className="text-white text-xs">💡</span>
+        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+          <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-primary text-xs">💡</span>
           </div>
           <span>Ask about acceptance rates, best skills, market opportunities, or growth strategies</span>
         </div>
