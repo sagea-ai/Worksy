@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { JobDecisionType, JobState } from "@prisma/client";
+import OpenAI from 'openai';
 
 // Type definitions for safe data handling
 type SafeJobDecision = {
@@ -59,6 +60,11 @@ const safeAverage = (values: number[]): number => {
 const isValidJobDecision = (d: any): d is SafeJobDecision => {
   return d && typeof d === 'object' && d.job && typeof d.job === 'object';
 };
+
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -302,69 +308,7 @@ export async function GET(request: NextRequest) {
       })
       .filter(range => range.total > 0);
 
-    // Improvement Recommendations with safe data handling
-    const recommendations: Array<{
-      type: string;
-      priority: 'high' | 'medium' | 'low';
-      title: string;
-      description: string;
-      action: string;
-      impact: string;
-    }> = [];
 
-    try {
-      // Low acceptance rate skills
-      const lowAcceptanceSkills = skillsAnalysis.filter(s => 
-        safeNumber(s.acceptanceRate) < 50 && safeNumber(s.total) >= 3
-      );
-      
-      if (lowAcceptanceSkills.length > 0 && lowAcceptanceSkills[0]) {
-        recommendations.push({
-          type: 'skill_improvement',
-          priority: 'high' as const,
-          title: 'Skills with Low Acceptance Rate',
-          description: `You're rejecting jobs with ${safeString(lowAcceptanceSkills[0].skill, 'certain skills')}. Consider improving this skill or adjusting your criteria.`,
-          action: `Focus on improving ${lowAcceptanceSkills.slice(0, 3).map(s => safeString(s.skill, 'Unknown')).filter(s => s !== 'Unknown').join(', ') || 'identified skills'}`,
-          impact: 'Could increase acceptance rate by 20-30%',
-        });
-      }
-
-      // High-value rejected skills
-      const highValueRejected = skillsAnalysis
-        .filter(s => safeNumber(s.rejected) > safeNumber(s.accepted) && safeNumber(s.avgBudget) > avgAcceptedBudget)
-        .sort((a, b) => safeNumber(b.avgBudget) - safeNumber(a.avgBudget))
-        .slice(0, 3);
-      
-      if (highValueRejected.length > 0 && highValueRejected[0] && avgAcceptedBudget > 0) {
-        const skill = highValueRejected[0];
-        const budgetDiff = safeNumber(skill.avgBudget) - avgAcceptedBudget;
-        
-        recommendations.push({
-          type: 'opportunity_cost',
-          priority: 'high' as const,
-          title: 'Missing High-Value Opportunities',
-          description: `You're rejecting high-budget jobs requiring ${safeString(skill.skill, 'certain skills')} (avg $${safeNumber(skill.avgBudget).toFixed(0)}).`,
-          action: `Consider developing skills in ${highValueRejected.map(s => safeString(s.skill, 'Unknown')).filter(s => s !== 'Unknown').join(', ') || 'identified areas'}`,
-          impact: `Potential to increase avg project value by $${Math.max(0, budgetDiff).toFixed(0)}`,
-        });
-      }
-
-      // Budget optimization
-      const bestBudgetRange = [...budgetAnalysis].sort((a, b) => safeNumber(b.acceptanceRate) - safeNumber(a.acceptanceRate))[0];
-      if (bestBudgetRange && safeNumber(bestBudgetRange.acceptanceRate) > acceptanceRate + 10) {
-        recommendations.push({
-          type: 'budget_optimization',
-          priority: 'medium' as const,
-          title: 'Budget Range Optimization',
-          description: `You accept ${safeNumber(bestBudgetRange.acceptanceRate).toFixed(1)}% of jobs in the ${safeString(bestBudgetRange.label, 'optimal')} range.`,
-          action: `Focus on jobs in the ${safeString(bestBudgetRange.label, 'optimal')} range for higher success rate`,
-          impact: 'Could improve acceptance rate and reduce time spent on evaluations',
-        });
-      }
-    } catch (error) {
-      console.warn('Error generating recommendations:', error);
-      // Continue without recommendations rather than failing
-    }
 
     // Recent trends (last 30 days vs previous period) with safe date handling
     const thirtyDaysAgo = new Date();
@@ -415,6 +359,125 @@ export async function GET(request: NextRequest) {
     const optimalBudgetRange = [...budgetAnalysis]
       .sort((a, b) => safeNumber(b.acceptanceRate) - safeNumber(a.acceptanceRate))[0];
 
+    // Generate AI insights after all calculations are complete
+    const generateAIInsightsWithData = async () => {
+      try {
+        if (!openai || !process.env.OPENAI_API_KEY) {
+          return {
+            generalInsights: [],
+            skillsInsights: [],
+            performanceInsights: [],
+            monetaryInsights: [],
+            platformInsights: [],
+            budgetInsights: []
+          };
+        }
+
+        // Prepare data summary for AI analysis
+        const dataSummary = {
+          totalDecisions,
+          acceptanceRate,
+          averageFitScore: avgFitScore,
+          avgAcceptedBudget,
+          avgRejectedBudget,
+          recentTrend: recentAcceptanceRate > acceptanceRate ? 'improving' : recentAcceptanceRate < acceptanceRate ? 'declining' : 'stable',
+          topSkills: skillsAnalysis.slice(0, 5).map(s => ({
+            skill: s.skill,
+            acceptanceRate: s.acceptanceRate,
+            avgBudget: s.avgBudget,
+            total: s.total
+          })),
+          platforms: platformAnalysis.slice(0, 3).map(p => ({
+            platform: p.platform,
+            acceptanceRate: p.acceptanceRate,
+            avgBudget: p.avgBudget,
+            total: p.total
+          })),
+          budgetRanges: budgetAnalysis.map(r => ({
+            range: r.label,
+            acceptanceRate: r.acceptanceRate,
+            total: r.total
+          }))
+        };
+
+        const prompt = `As an AI career advisor analyzing freelancer job decision patterns, provide actionable insights based on this data:
+
+SUMMARY:
+- Total Decisions: ${totalDecisions}
+- Acceptance Rate: ${acceptanceRate.toFixed(1)}%
+- Average Fit Score: ${avgFitScore.toFixed(1)}/100
+- Average Accepted Budget: $${avgAcceptedBudget}
+- Average Rejected Budget: $${avgRejectedBudget}
+- Recent Trend: ${dataSummary.recentTrend}
+
+TOP SKILLS: ${JSON.stringify(dataSummary.topSkills, null, 2)}
+PLATFORMS: ${JSON.stringify(dataSummary.platforms, null, 2)}
+BUDGET RANGES: ${JSON.stringify(dataSummary.budgetRanges, null, 2)}
+
+Generate 6 categories of insights (2-3 insights per category):
+
+1. GENERAL: Overall patterns and key observations
+2. SKILLS: Skill-specific opportunities and recommendations
+3. PERFORMANCE: Decision-making patterns and efficiency
+4. MONETARY: Financial optimization opportunities
+5. PLATFORM: Platform-specific strategies
+6. BUDGET: Budget range optimization and positioning
+
+IMPORTANT: Return ONLY valid JSON without any markdown code blocks or formatting. Do not wrap the response in \`\`\`json or any other markup.
+
+Format as JSON with this exact structure:
+{
+  "generalInsights": [{"title": "", "description": "", "action": "", "impact": "", "priority": "high|medium|low"}],
+  "skillsInsights": [...],
+  "performanceInsights": [...],
+  "monetaryInsights": [...],
+  "platformInsights": [...],
+  "budgetInsights": [...]
+}
+
+Keep insights specific, actionable, and data-driven. Focus on practical next steps. Return pure JSON only.`;
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+          max_tokens: 2000,
+        });
+
+        const response = completion.choices[0]?.message?.content;
+        if (response) {
+          // Clean the response by removing markdown code blocks if present
+          const cleanedResponse = response
+            .replace(/```json\s*/g, '')
+            .replace(/```\s*/g, '')
+            .trim();
+          
+          const insights = JSON.parse(cleanedResponse);
+          return insights;
+        }
+      } catch (error) {
+        console.warn('OpenAI insights generation failed:', error);
+      }
+
+      // Fallback to basic insights if AI fails
+      return {
+        generalInsights: [{
+          title: "Getting Started",
+          description: "Continue analyzing jobs to build more comprehensive insights",
+          action: "Review more job opportunities to improve analytics",
+          impact: "Better decision-making patterns",
+          priority: "medium"
+        }],
+        skillsInsights: [],
+        performanceInsights: [],
+        monetaryInsights: [],
+        platformInsights: [],
+        budgetInsights: []
+      };
+    };
+
+    const aiInsights = await generateAIInsightsWithData();
+
     const response = {
       basicStats: {
         totalDecisions,
@@ -440,7 +503,7 @@ export async function GET(request: NextRequest) {
       skillsAnalysis: skillsAnalysis.slice(0, 15), // Top 15 skills
       platformAnalysis: platformAnalysis.slice(0, 10), // Top 10 platforms
       budgetAnalysis: budgetAnalysis,
-      recommendations: recommendations,
+      aiInsights: aiInsights,
       insights: {
         topSkill: skillsAnalysis[0]?.skill || 'N/A',
         weakestSkill: skillsAnalysis.length > 1 ? skillsAnalysis[skillsAnalysis.length - 1]?.skill || 'N/A' : 'N/A',
