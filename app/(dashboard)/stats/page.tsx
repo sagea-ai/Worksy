@@ -339,7 +339,7 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="space-y-6 px-4 lg:px-6 mt-6">
+    <div className="space-y-6 px-4 lg:px-20 mt-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -444,11 +444,11 @@ export default function StatsPage() {
           {/* AI Insights for Skills */}
           <Card className="mb-6">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2 text-blue-900 dark:text-blue-100">
-                <IconBulb className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconBulb className="h-5 w-5 text-primary" />
                 AI-Powered Skills Insights
               </CardTitle>
-              <CardDescription className="text-blue-700/70 dark:text-blue-300/70">
+              <CardDescription>
                 Personalized recommendations based on your job decision patterns
               </CardDescription>
             </CardHeader>
@@ -608,11 +608,11 @@ export default function StatsPage() {
           {/* AI Insights for Performance */}
           <Card className="mb-6">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
-                <IconBulb className="h-5 w-5 text-green-600" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconBulb className="h-5 w-5 text-primary" />
                 Performance Intelligence
               </CardTitle>
-              <CardDescription className="text-green-700/70 dark:text-green-300/70">
+              <CardDescription>
                 AI analysis of your decision-making patterns and efficiency
               </CardDescription>
             </CardHeader>
@@ -733,11 +733,11 @@ export default function StatsPage() {
           {/* AI Insights for Monetary */}
           <Card className="mb-6">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2 text-amber-900 dark:text-amber-100">
-                <IconBulb className="h-5 w-5 text-amber-600" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconBulb className="h-5 w-5 text-primary" />
                 Financial Optimization
               </CardTitle>
-              <CardDescription className="text-amber-700/70 dark:text-amber-300/70">
+              <CardDescription>
                 Smart insights to maximize your earning potential
               </CardDescription>
             </CardHeader>
@@ -816,11 +816,11 @@ export default function StatsPage() {
           {/* AI Insights for Platforms */}
           <Card className="mb-6">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2 text-purple-900 dark:text-purple-100">
-                <IconBulb className="h-5 w-5 text-purple-600" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconBulb className="h-5 w-5 text-primary" />
                 Platform Strategy
               </CardTitle>
-              <CardDescription className="text-purple-700/70 dark:text-purple-300/70">
+              <CardDescription>
                 Optimize your approach across different freelance platforms
               </CardDescription>
             </CardHeader>
@@ -875,11 +875,11 @@ export default function StatsPage() {
           {/* AI Insights for Budget */}
           <Card className="mb-6">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg flex items-center gap-2 text-rose-900 dark:text-rose-100">
-                <IconBulb className="h-5 w-5 text-rose-600" />
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconBulb className="h-5 w-5 text-primary" />
                 Budget Intelligence
               </CardTitle>
-              <CardDescription className="text-rose-700/70 dark:text-rose-300/70">
+              <CardDescription>
                 Strategic insights for optimal project pricing and selection
               </CardDescription>
             </CardHeader>
