@@ -236,10 +236,10 @@ export default function StatsPage() {
     return (
       <div className="space-y-3">
         {insights.map((insight: any, index: number) => (
-          <Card key={index} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+          <Card key={index} className="border-l-4 border-l-primary hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="text-blue-600 mt-0.5">{icon}</div>
+                <div className="text-primary mt-0.5">{icon}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <h4 className="font-semibold text-sm leading-tight">{safeString(insight.title)}</h4>
@@ -253,11 +253,11 @@ export default function StatsPage() {
                   <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{safeString(insight.description)}</p>
                   <div className="space-y-2 text-xs">
                     <div className="flex items-start gap-2">
-                      <span className="font-medium text-green-700 dark:text-green-400 shrink-0">Action:</span>
+                      <span className="font-medium text-primary shrink-0">Action:</span>
                       <span className="text-muted-foreground">{safeString(insight.action)}</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="font-medium text-blue-700 dark:text-blue-400 shrink-0">Impact:</span>
+                      <span className="font-medium text-primary shrink-0">Impact:</span>
                       <span className="text-muted-foreground">{safeString(insight.impact)}</span>
                     </div>
                   </div>
@@ -339,40 +339,37 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-7xl">
+    <div className="space-y-6 px-4 lg:px-6 mt-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 text-white p-8 mb-8">
-        <div className="relative z-10 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-              <IconChartBar className="h-8 w-8" />
-              Your Analytics Dashboard
-            </h1>
-            <p className="text-emerald-100 dark:text-emerald-200 text-lg">
-              AI-powered insights into your freelance journey and opportunities
-            </p>
-            <div className="flex items-center gap-4 mt-3 text-sm text-blue-200">
-              <span className="flex items-center gap-1">
-                <IconCircleCheck className="h-4 w-4" />
-                {safeNumber(stats.basicStats?.totalDecisions)} decisions analyzed
-              </span>
-              <span className="flex items-center gap-1">
-                <IconTrendingUp className="h-4 w-4" />
-                {formatPercentage(stats.basicStats?.acceptanceRate)} acceptance rate
-              </span>
-            </div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <IconChartBar className="h-8 w-8 text-primary" />
+            Analytics Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            AI-powered insights into your freelance journey and opportunities
+          </p>
+          <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <IconCircleCheck className="h-4 w-4 text-primary" />
+              {safeNumber(stats.basicStats?.totalDecisions)} decisions analyzed
+            </span>
+            <span className="flex items-center gap-1">
+              <IconTrendingUp className="h-4 w-4 text-primary" />
+              {formatPercentage(stats.basicStats?.acceptanceRate)} acceptance rate
+            </span>
           </div>
-          <Button 
-            variant="secondary" 
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
-          >
-            <IconRefresh className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>
         </div>
-        <div className="absolute inset-0 bg-grid-white/10 mask-[linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
+        <Button 
+          variant="outline" 
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-2"
+        >
+          <IconRefresh className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          {refreshing ? 'Refreshing...' : 'Refresh Data'}
+        </Button>
       </div>
 
       {/* Quick Insights Cards */}
@@ -445,7 +442,7 @@ export default function StatsPage() {
         {/* Skills Analysis */}
         <TabsContent value="skills" className="space-y-6">
           {/* AI Insights for Skills */}
-          <Card className="mb-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+          <Card className="mb-6">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-blue-900 dark:text-blue-100">
                 <IconBulb className="h-5 w-5 text-blue-600" />
@@ -609,7 +606,7 @@ export default function StatsPage() {
         {/* Performance Analysis */}
         <TabsContent value="performance" className="space-y-6">
           {/* AI Insights for Performance */}
-          <Card className="mb-6 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+          <Card className="mb-6">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
                 <IconBulb className="h-5 w-5 text-green-600" />
@@ -734,7 +731,7 @@ export default function StatsPage() {
         {/* Monetary Analysis */}
         <TabsContent value="monetary" className="space-y-6">
           {/* AI Insights for Monetary */}
-          <Card className="mb-6 bg-linear-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border-amber-200 dark:border-amber-800">
+          <Card className="mb-6">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-amber-900 dark:text-amber-100">
                 <IconBulb className="h-5 w-5 text-amber-600" />
@@ -817,7 +814,7 @@ export default function StatsPage() {
         {/* Platform Analysis */}
         <TabsContent value="platforms" className="space-y-6">
           {/* AI Insights for Platforms */}
-          <Card className="mb-6 bg-linear-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 border-purple-200 dark:border-purple-800">
+          <Card className="mb-6">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-purple-900 dark:text-purple-100">
                 <IconBulb className="h-5 w-5 text-purple-600" />
@@ -876,7 +873,7 @@ export default function StatsPage() {
         {/* Budget Trends */}
         <TabsContent value="trends" className="space-y-6">
           {/* AI Insights for Budget */}
-          <Card className="mb-6 bg-linear-to-r from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20 border-rose-200 dark:border-rose-800">
+          <Card className="mb-6">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-rose-900 dark:text-rose-100">
                 <IconBulb className="h-5 w-5 text-rose-600" />
