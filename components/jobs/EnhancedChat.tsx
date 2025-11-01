@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { JobFitAnalysis, JobFitAnalysisData } from './JobFitAnalysis';
 import { JobPitchDisplay } from './JobPitchDisplay';
 import { MVPPromptModal } from './MVPPromptModal';
@@ -68,24 +68,15 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
   const [mvpAppdeskUrl, setMvpAppdeskUrl] = useState<string | null>(null);
   const [mvpModalOpen, setMvpModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const analyzedJobIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    // Initialize with welcome message only if messages is empty
-    setMessages((prev) => {
-      if (prev.length === 0) {
-        const welcomeMessage: ChatMessage = {
-          id: generateMessageId('welcome'),
-          type: 'ai',
-          content: "Do you want to see whether you're fit for this job or not?",
-          timestamp: new Date(),
-        };
-        return [welcomeMessage];
-      }
-      return prev;
-    });
-  }, []);
+  // Memoize handleStartAnalysis to prevent recreating on every render
+  const handleStartAnalysis = useCallback(async () => {
+    if (!job?.id || analyzedJobIdRef.current === job.id) {
+      return; // Already analyzed this job or no job selected
+    }
 
-  const handleStartAnalysis = async () => {
+    analyzedJobIdRef.current = job.id;
     setState('analyzing');
     setLoading(true);
 
@@ -123,10 +114,35 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
       };
       addMessage(errorMessage);
       setState('initial');
+      analyzedJobIdRef.current = null; // Reset on error to allow retry
     } finally {
       setLoading(false);
     }
-  };
+  }, [job?.id]);
+
+  // Reset state and auto-start analysis when job changes
+  useEffect(() => {
+    // Reset all state when job changes
+    setState('initial');
+    setMessages([]);
+    setFitAnalysis(null);
+    setPitch(null);
+    setRejectionReason('');
+    setMvpPrompt(null);
+    setMvpLovableUrl(null);
+    setMvpAppdeskUrl(null);
+    analyzedJobIdRef.current = null;
+    
+    // Automatically start fit analysis when job is selected
+    if (job?.id) {
+      // Use a small delay to ensure state is reset first
+      const timeoutId = setTimeout(() => {
+        handleStartAnalysis();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [job?.id, handleStartAnalysis]);
 
   const handleAccept = async () => {
     try {
@@ -330,17 +346,11 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
 
       {/* Action Buttons / Input */}
       <div className="border-t p-4">
-        {state === 'initial' && (
-          <Button onClick={handleStartAnalysis} className="w-full" disabled={loading}>
-            {loading ? (
-              <>
-                <IconLoader2 className="h-4 w-4 mr-2 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              'Analyze Job Fit'
-            )}
-          </Button>
+        {state === 'analyzing' && (
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <IconLoader2 className="h-4 w-4 animate-spin" />
+            Analyzing your profile compatibility with this job...
+          </div>
         )}
 
         {state === 'pitch-question' && (

@@ -846,7 +846,7 @@ I have experience with similar projects and would love to discuss this opportuni
   }
 
   const handleJobSelect = async (job: Job) => {
-    setSelectedJob(job)
+    // Reset all related state when selecting a new job
     setJobAnalysis(null)
     setAnalyzingJob(false)
     setBuildingPlan(null)
@@ -885,209 +885,228 @@ I have experience with similar projects and would love to discuss this opportuni
         const storeResult = await storeResponse.json()
         console.log('✅ Job stored successfully:', storeResult.job?.id)
         
-        // Update the job with internal database ID
+        // Update the job with internal database ID and set selectedJob with updated info
+        let updatedJob = job
         if (storeResult.job?.id) {
-          job.internalJobId = storeResult.job.id
+          updatedJob = {
+            ...job,
+            internalJobId: storeResult.job.id
+          }
+          
+          // Also update the job in the jobs list to keep state in sync
+          setJobs(prevJobs => 
+            prevJobs.map(j => 
+              j.id === job.id ? { ...j, internalJobId: storeResult.job.id } : j
+            )
+          )
+        }
+        
+        // Set selectedJob so EnhancedChat can start fit analysis immediately
+        setSelectedJob(updatedJob)
+        
+        // Load existing data if we have an internalJobId
+        if (updatedJob.internalJobId) {
+          console.log(`📋 Loading existing data for job ${updatedJob.internalJobId}...`)
+      
+          try {
+            const response = await fetch(`/api/jobs/manage?jobId=${updatedJob.internalJobId}&externalId=${updatedJob.id}&platform=${updatedJob.platform}`)
+            
+            console.log(`🌐 API Response status: ${response.status}`)
+            
+            if (response.ok) {
+              const result = await response.json()
+              
+              console.log(`📦 Raw API response:`, JSON.stringify(result, null, 2))
+              
+              if (result.job) {
+                console.log(`🔍 Found existing job data:`, {
+                  hasBuildingPlan: !!result.job.buildingPlan,
+                  hasAiAnalysis: !!result.job.aiAnalysis,
+                  hasChatHistory: !!result.job.chatHistory,
+                  buildingPlanKeys: result.job.buildingPlan ? Object.keys(result.job.buildingPlan) : [],
+                  aiAnalysisKeys: result.job.aiAnalysis ? Object.keys(result.job.aiAnalysis) : [],
+                  chatHistoryStructure: result.job.chatHistory ? {
+                    hasMessages: !!result.job.chatHistory.messages,
+                    messageCount: result.job.chatHistory.messages?.length || 0
+                  } : null
+                })
+                
+                console.log(`🏗️ Building Plan Data Structure:`, result.job.buildingPlan)
+                console.log(`🧠 AI Analysis Data Structure:`, result.job.aiAnalysis)
+                console.log(`💬 Chat History Data Structure:`, result.job.chatHistory)
+                
+                if (result.job.buildingPlan) {
+                  console.log('🏗️ Setting building plan state from DB data:', result.job.buildingPlan)
+                  setBuildingPlan(result.job.buildingPlan)
+                  setConversationStarted(true)
+                  console.log('✅ Building plan state variable updated')
+                } else {
+                  console.log('❌ No building plan found in DB')
+                }
+                
+                if (result.job.aiAnalysis) {
+                  console.log('🧠 Setting analysis state from DB data:', result.job.aiAnalysis)
+                  setJobAnalysis(result.job.aiAnalysis)
+                  console.log('✅ Analysis state variable updated')
+                } else {
+                  console.log('❌ No AI analysis found in DB')
+                }
+                
+                if (result.job.chatHistory && result.job.chatHistory.messages && Array.isArray(result.job.chatHistory.messages)) {
+                  console.log('📱 Loading chat history from DB...')
+                  const loadedChatMessages = result.job.chatHistory.messages.map((msg: any) => {
+                    const messageData = {
+                      id: msg.id,
+                      type: msg.type,
+                      content: msg.content,
+                      timestamp: new Date(msg.timestamp),
+                      data: msg.data,
+                      choice: msg.choice
+                    }
+                    
+                    if (msg.type === 'ai_analysis' && result.job.aiAnalysis && !msg.data) {
+                      messageData.data = result.job.aiAnalysis
+                      console.log('🔗 Attached analysis data to ai_analysis message')
+                    }
+                    
+                    if (msg.type === 'ai_building_plan' && result.job.buildingPlan && !msg.data) {
+                      messageData.data = result.job.buildingPlan
+                      console.log('🔗 Attached building plan data to ai_building_plan message')
+                    }
+                    
+                    return messageData
+                  })
+                  console.log(`📱 Loaded ${loadedChatMessages.length} chat messages from history:`, loadedChatMessages)
+                  setChatMessages(loadedChatMessages)
+                  setConversationStarted(true)
+                  console.log('✅ Chat messages loaded from DB history with data attached')
+                } else if (result.job.buildingPlan || result.job.aiAnalysis) {
+                  console.log('🔄 No chat history found, recreating from stored data...')
+                  const recreatedMessages: ChatMessage[] = []
+                  
+                  const hasAnalysis = result.job.aiAnalysis && (result.job.aiAnalysis.status === 'completed' || result.job.aiAnalysis.marketAnalysis)
+                  const hasBuildingPlan = result.job.buildingPlan && (result.job.buildingPlan.status === 'completed' || result.job.buildingPlan.steps)
+                  
+                  console.log('🔍 Data availability check:', {
+                    hasAnalysis,
+                    hasBuildingPlan,
+                    analysisStatus: result.job.aiAnalysis?.status,
+                    analysisHasMarketData: !!result.job.aiAnalysis?.marketAnalysis,
+                    buildingPlanStatus: result.job.buildingPlan?.status,
+                    buildingPlanHasSteps: !!result.job.buildingPlan?.steps
+                  })
+                  
+                  if (!hasAnalysis && !hasBuildingPlan) {
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'ai_initial'),
+                      type: 'ai_question',
+                      content: `👋 Hi! I'm ready to help with this project. What would you like to do first?`,
+                      timestamp: new Date(Date.now() - 60000)
+                    })
+                  }
+                  
+                  if (hasAnalysis) {
+                    console.log('✅ Adding analysis messages to recreation...')
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'user_choice_analysis'),
+                      type: 'user_choice',
+                      content: `User selected: analysis`,
+                      choice: 'analysis',
+                      timestamp: new Date(Date.now() - 50000) 
+                    })
+                    
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'ai_analysis_completed'),
+                      type: 'ai_analysis',
+                      content: '✅ Analysis completed! Here are my findings:',
+                      timestamp: new Date(Date.now() - 40000), 
+                      data: result.job.aiAnalysis
+                    })
+                    console.log('📝 Analysis messages added to recreation')
+                  } else {
+                    console.log('❌ Skipping analysis messages - no valid analysis data')
+                  }
+                  
+                  if (hasBuildingPlan) {
+                    console.log('✅ Adding building plan messages to recreation...')
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'user_choice_building'),
+                      type: 'user_choice',
+                      content: `User selected: building_steps`,
+                      choice: 'building_steps',
+                      timestamp: new Date(Date.now() - 30000)
+                    })
+                    
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'ai_building_completed'),
+                      type: 'ai_building_plan',
+                      content: '🎯 Building plan ready! Here\'s your project roadmap:',
+                      timestamp: new Date(Date.now() - 20000), 
+                      data: result.job.buildingPlan
+                    })
+                    console.log('📝 Building plan messages added to recreation')
+                  } else {
+                    console.log('❌ Skipping building plan messages - no valid building plan data')
+                  }
+                  
+                  if (hasAnalysis && !hasBuildingPlan) {
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'ai_followup_building'),
+                      type: 'ai_question',
+                      content: '✅ Analysis complete! Would you like me to create a detailed building plan next?',
+                      timestamp: new Date(Date.now() - 10000)
+                    })
+                  } else if (hasBuildingPlan && !hasAnalysis) {
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'ai_followup_analysis'),
+                      type: 'ai_question',
+                      content: '🎯 Building plan ready! Would you like me to analyze this project in detail as well?',
+                      timestamp: new Date(Date.now() - 10000) 
+                    })
+                  } else if (hasAnalysis && hasBuildingPlan) {
+                    recreatedMessages.push({
+                      id: generateMessageId(job.id.toString(), 'ai_completion'),
+                      type: 'ai',
+                      content: '🎉 Perfect! You have both the analysis and building plan ready. You can now submit your proposal with confidence!',
+                      timestamp: new Date(Date.now() - 10000) 
+                    })
+                  }
+                  
+                  console.log(`🔄 Final recreated messages (${recreatedMessages.length} total):`, recreatedMessages)
+                  setChatMessages(recreatedMessages)
+                  setConversationStarted(true)
+                  console.log(`✅ Chat messages set in state. Conversation started: true`)
+                } else {
+                  console.log('❌ No chat history and no stored data to recreate from')
+                }
+                
+                if (result.job.buildingPlan || result.job.aiAnalysis || (result.job.chatHistory && result.job.chatHistory.messages?.length > 0)) {
+                  console.log('✅ Found existing data, skipping initial choice UI')
+                  return
+                } else {
+                  console.log('❌ No existing data found, will show initial choice UI')
+                }
+              } else {
+                console.log('❌ No job data in API response')
+              }
+          } else {
+            console.log(`❌ API request failed with status: ${response.status}`)
+            const errorText = await response.text()
+            console.log('❌ Error response:', errorText)
+          }
+        } catch (error) {
+          console.error('Error loading existing job data:', error)
+        }
         }
       } else {
         console.error('❌ Failed to store job in database')
+        // Still set selectedJob so user can interact with it
+        setSelectedJob(job)
       }
     } catch (error) {
       console.error('❌ Error storing job:', error)
-    }
-    
-    if (job.internalJobId) {
-      console.log(`📋 Loading existing data for job ${job.internalJobId}...`)
-      
-      try {
-        const response = await fetch(`/api/jobs/manage?jobId=${job.internalJobId}&externalId=${job.id}&platform=${job.platform}`)
-        
-        console.log(`🌐 API Response status: ${response.status}`)
-        
-        if (response.ok) {
-          const result = await response.json()
-          
-          console.log(`📦 Raw API response:`, JSON.stringify(result, null, 2))
-          
-          if (result.job) {
-            console.log(`🔍 Found existing job data:`, {
-              hasBuildingPlan: !!result.job.buildingPlan,
-              hasAiAnalysis: !!result.job.aiAnalysis,
-              hasChatHistory: !!result.job.chatHistory,
-              buildingPlanKeys: result.job.buildingPlan ? Object.keys(result.job.buildingPlan) : [],
-              aiAnalysisKeys: result.job.aiAnalysis ? Object.keys(result.job.aiAnalysis) : [],
-              chatHistoryStructure: result.job.chatHistory ? {
-                hasMessages: !!result.job.chatHistory.messages,
-                messageCount: result.job.chatHistory.messages?.length || 0
-              } : null
-            })
-            
-            console.log(`🏗️ Building Plan Data Structure:`, result.job.buildingPlan)
-            console.log(`🧠 AI Analysis Data Structure:`, result.job.aiAnalysis)
-            console.log(`💬 Chat History Data Structure:`, result.job.chatHistory)
-            
-            if (result.job.buildingPlan) {
-              console.log('🏗️ Setting building plan state from DB data:', result.job.buildingPlan)
-              setBuildingPlan(result.job.buildingPlan)
-              setConversationStarted(true)
-              console.log('✅ Building plan state variable updated')
-            } else {
-              console.log('❌ No building plan found in DB')
-            }
-            
-            if (result.job.aiAnalysis) {
-              console.log('🧠 Setting analysis state from DB data:', result.job.aiAnalysis)
-              setJobAnalysis(result.job.aiAnalysis)
-              console.log('✅ Analysis state variable updated')
-            } else {
-              console.log('❌ No AI analysis found in DB')
-            }
-            
-            if (result.job.chatHistory && result.job.chatHistory.messages && Array.isArray(result.job.chatHistory.messages)) {
-              console.log('📱 Loading chat history from DB...')
-              const loadedChatMessages = result.job.chatHistory.messages.map((msg: any) => {
-                const messageData = {
-                  id: msg.id,
-                  type: msg.type,
-                  content: msg.content,
-                  timestamp: new Date(msg.timestamp),
-                  data: msg.data,
-                  choice: msg.choice
-                }
-                
-                if (msg.type === 'ai_analysis' && result.job.aiAnalysis && !msg.data) {
-                  messageData.data = result.job.aiAnalysis
-                  console.log('🔗 Attached analysis data to ai_analysis message')
-                }
-                
-                if (msg.type === 'ai_building_plan' && result.job.buildingPlan && !msg.data) {
-                  messageData.data = result.job.buildingPlan
-                  console.log('🔗 Attached building plan data to ai_building_plan message')
-                }
-                
-                return messageData
-              })
-              console.log(`📱 Loaded ${loadedChatMessages.length} chat messages from history:`, loadedChatMessages)
-              setChatMessages(loadedChatMessages)
-              setConversationStarted(true)
-              console.log('✅ Chat messages loaded from DB history with data attached')
-            } else if (result.job.buildingPlan || result.job.aiAnalysis) {
-              console.log('🔄 No chat history found, recreating from stored data...')
-              const recreatedMessages: ChatMessage[] = []
-              
-              const hasAnalysis = result.job.aiAnalysis && (result.job.aiAnalysis.status === 'completed' || result.job.aiAnalysis.marketAnalysis)
-              const hasBuildingPlan = result.job.buildingPlan && (result.job.buildingPlan.status === 'completed' || result.job.buildingPlan.steps)
-              
-              console.log('🔍 Data availability check:', {
-                hasAnalysis,
-                hasBuildingPlan,
-                analysisStatus: result.job.aiAnalysis?.status,
-                analysisHasMarketData: !!result.job.aiAnalysis?.marketAnalysis,
-                buildingPlanStatus: result.job.buildingPlan?.status,
-                buildingPlanHasSteps: !!result.job.buildingPlan?.steps
-              })
-              
-              if (!hasAnalysis && !hasBuildingPlan) {
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'ai_initial'),
-                  type: 'ai_question',
-                  content: `👋 Hi! I'm ready to help with this project. What would you like to do first?`,
-                  timestamp: new Date(Date.now() - 60000)
-                })
-              }
-              
-              if (hasAnalysis) {
-                console.log('✅ Adding analysis messages to recreation...')
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'user_choice_analysis'),
-                  type: 'user_choice',
-                  content: `User selected: analysis`,
-                  choice: 'analysis',
-                  timestamp: new Date(Date.now() - 50000) 
-                })
-                
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'ai_analysis_completed'),
-                  type: 'ai_analysis',
-                  content: '✅ Analysis completed! Here are my findings:',
-                  timestamp: new Date(Date.now() - 40000), 
-                  data: result.job.aiAnalysis
-                })
-                console.log('📝 Analysis messages added to recreation')
-              } else {
-                console.log('❌ Skipping analysis messages - no valid analysis data')
-              }
-              
-              if (hasBuildingPlan) {
-                console.log('✅ Adding building plan messages to recreation...')
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'user_choice_building'),
-                  type: 'user_choice',
-                  content: `User selected: building_steps`,
-                  choice: 'building_steps',
-                  timestamp: new Date(Date.now() - 30000)
-                })
-                
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'ai_building_completed'),
-                  type: 'ai_building_plan',
-                  content: '🎯 Building plan ready! Here\'s your project roadmap:',
-                  timestamp: new Date(Date.now() - 20000), 
-                  data: result.job.buildingPlan
-                })
-                console.log('📝 Building plan messages added to recreation')
-              } else {
-                console.log('❌ Skipping building plan messages - no valid building plan data')
-              }
-              
-              if (hasAnalysis && !hasBuildingPlan) {
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'ai_followup_building'),
-                  type: 'ai_question',
-                  content: '✅ Analysis complete! Would you like me to create a detailed building plan next?',
-                  timestamp: new Date(Date.now() - 10000)
-                })
-              } else if (hasBuildingPlan && !hasAnalysis) {
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'ai_followup_analysis'),
-                  type: 'ai_question',
-                  content: '🎯 Building plan ready! Would you like me to analyze this project in detail as well?',
-                  timestamp: new Date(Date.now() - 10000) 
-                })
-              } else if (hasAnalysis && hasBuildingPlan) {
-                recreatedMessages.push({
-                  id: generateMessageId(job.id.toString(), 'ai_completion'),
-                  type: 'ai',
-                  content: '🎉 Perfect! You have both the analysis and building plan ready. You can now submit your proposal with confidence!',
-                  timestamp: new Date(Date.now() - 10000) 
-                })
-              }
-              
-              console.log(`🔄 Final recreated messages (${recreatedMessages.length} total):`, recreatedMessages)
-              setChatMessages(recreatedMessages)
-              setConversationStarted(true)
-              console.log(`✅ Chat messages set in state. Conversation started: true`)
-            } else {
-              console.log('❌ No chat history and no stored data to recreate from')
-            }
-            
-            if (result.job.buildingPlan || result.job.aiAnalysis || (result.job.chatHistory && result.job.chatHistory.messages?.length > 0)) {
-              console.log('✅ Found existing data, skipping initial choice UI')
-              return
-            } else {
-              console.log('❌ No existing data found, will show initial choice UI')
-            }
-          } else {
-            console.log('❌ No job data in API response')
-          }
-        } else {
-          console.log(`❌ API request failed with status: ${response.status}`)
-          const errorText = await response.text()
-          console.log('❌ Error response:', errorText)
-        }
-      } catch (error) {
-        console.error('Error loading existing job data:', error)
-      }
+      // Still set selectedJob so user can interact with it
+      setSelectedJob(job)
     }
     
     console.log('🚀 Starting choice-based UI for job without existing data...')
@@ -2775,6 +2794,7 @@ I have experience with similar projects and would love to discuss this opportuni
               <div className="flex-1 flex flex-col overflow-hidden relative min-h-0">
                 {selectedJob ? (
                   <EnhancedChat
+                    key={selectedJob.internalJobId || selectedJob.id.toString()}
                     job={{
                       id: selectedJob.internalJobId || selectedJob.id.toString(),
                       title: selectedJob.title,
