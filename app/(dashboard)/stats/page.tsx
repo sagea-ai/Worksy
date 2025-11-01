@@ -79,14 +79,50 @@ interface StatsData {
     acceptanceRate: number
     avgFitScore: number
   }>
-  recommendations: Array<{
-    type: string
-    priority: 'high' | 'medium' | 'low'
-    title: string
-    description: string
-    action: string
-    impact: string
-  }>
+  aiInsights: {
+    generalInsights: Array<{
+      title: string
+      description: string
+      action: string
+      impact: string
+      priority: 'high' | 'medium' | 'low'
+    }>
+    skillsInsights: Array<{
+      title: string
+      description: string
+      action: string
+      impact: string
+      priority: 'high' | 'medium' | 'low'
+    }>
+    performanceInsights: Array<{
+      title: string
+      description: string
+      action: string
+      impact: string
+      priority: 'high' | 'medium' | 'low'
+    }>
+    monetaryInsights: Array<{
+      title: string
+      description: string
+      action: string
+      impact: string
+      priority: 'high' | 'medium' | 'low'
+    }>
+    platformInsights: Array<{
+      title: string
+      description: string
+      action: string
+      impact: string
+      priority: 'high' | 'medium' | 'low'
+    }>
+    budgetInsights: Array<{
+      title: string
+      description: string
+      action: string
+      impact: string
+      priority: 'high' | 'medium' | 'low'
+    }>
+  }
   insights: {
     topSkill: string
     weakestSkill: string
@@ -182,6 +218,58 @@ export default function StatsPage() {
     }
   }
 
+  const renderInsights = (insights: any[], icon: React.ReactNode, sectionTitle: string) => {
+    if (!insights || insights.length === 0) {
+      return (
+        <Card className="border-dashed">
+          <CardContent className="pt-6">
+            <div className="text-center py-8 text-muted-foreground">
+              <div className="text-muted-foreground/30 mb-3 flex justify-center">{icon}</div>
+              <h4 className="font-medium mb-2">AI Analysis in Progress</h4>
+              <p className="text-sm">Generating personalized {sectionTitle.toLowerCase()} insights based on your data...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return (
+      <div className="space-y-3">
+        {insights.map((insight: any, index: number) => (
+          <Card key={index} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="text-blue-600 mt-0.5">{icon}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h4 className="font-semibold text-sm leading-tight">{safeString(insight.title)}</h4>
+                    <Badge 
+                      variant={insight.priority === 'high' ? 'destructive' : insight.priority === 'medium' ? 'default' : 'secondary'}
+                      className="text-xs shrink-0"
+                    >
+                      {safeString(insight.priority, 'medium')}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3 leading-relaxed">{safeString(insight.description)}</p>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-start gap-2">
+                      <span className="font-medium text-green-700 dark:text-green-400 shrink-0">Action:</span>
+                      <span className="text-muted-foreground">{safeString(insight.action)}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="font-medium text-blue-700 dark:text-blue-400 shrink-0">Impact:</span>
+                      <span className="text-muted-foreground">{safeString(insight.impact)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <LoadingScreen 
@@ -253,22 +341,38 @@ export default function StatsPage() {
   return (
     <div className="container mx-auto py-6 px-4 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Your Analytics</h1>
-          <p className="text-muted-foreground mt-1">
-            Deep insights into your job decision patterns and opportunities
-          </p>
+      <div className="relative overflow-hidden rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 text-white p-8 mb-8">
+        <div className="relative z-10 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+              <IconChartBar className="h-8 w-8" />
+              Your Analytics Dashboard
+            </h1>
+            <p className="text-emerald-100 dark:text-emerald-200 text-lg">
+              AI-powered insights into your freelance journey and opportunities
+            </p>
+            <div className="flex items-center gap-4 mt-3 text-sm text-blue-200">
+              <span className="flex items-center gap-1">
+                <IconCircleCheck className="h-4 w-4" />
+                {safeNumber(stats.basicStats?.totalDecisions)} decisions analyzed
+              </span>
+              <span className="flex items-center gap-1">
+                <IconTrendingUp className="h-4 w-4" />
+                {formatPercentage(stats.basicStats?.acceptanceRate)} acceptance rate
+              </span>
+            </div>
+          </div>
+          <Button 
+            variant="secondary" 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
+          >
+            <IconRefresh className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="flex items-center gap-2"
-        >
-          <IconRefresh className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </Button>
+        <div className="absolute inset-0 bg-grid-white/10 mask-[linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
       </div>
 
       {/* Quick Insights Cards */}
@@ -326,50 +430,7 @@ export default function StatsPage() {
         </Card>
       </div>
 
-      {/* Recommendations Section */}
-      {stats.recommendations.length > 0 && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <IconBulb className="h-5 w-5" />
-              Recommendations
-            </CardTitle>
-            <CardDescription>
-              Actionable insights to improve your success rate and earnings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              {stats.recommendations.map((rec, index) => (
-                <div 
-                  key={index}
-                  className={`p-4 rounded-lg border ${getPriorityColor(rec.priority)}`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold">{rec.title}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          {rec.priority} priority
-                        </Badge>
-                      </div>
-                      <p className="text-sm mb-2">{rec.description}</p>
-                      <div className="text-sm font-medium">
-                        <span className="text-muted-foreground">Action: </span>
-                        {rec.action}
-                      </div>
-                      <div className="text-sm font-medium">
-                        <span className="text-muted-foreground">Impact: </span>
-                        {rec.impact}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Detailed Analytics Tabs */}
       <Tabs defaultValue="skills" className="space-y-6">
@@ -383,6 +444,125 @@ export default function StatsPage() {
 
         {/* Skills Analysis */}
         <TabsContent value="skills" className="space-y-6">
+          {/* AI Insights for Skills */}
+          <Card className="mb-6 bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                <IconBulb className="h-5 w-5 text-blue-600" />
+                AI-Powered Skills Insights
+              </CardTitle>
+              <CardDescription className="text-blue-700/70 dark:text-blue-300/70">
+                Personalized recommendations based on your job decision patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {renderInsights(stats.aiInsights?.skillsInsights, <IconBrain className="h-4 w-4" />, "Skills")}
+            </CardContent>
+          </Card>
+
+          {/* Learning Path & Key Insights - Only in Skills Tab */}
+          <div className="grid gap-6 lg:grid-cols-2 mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <IconTarget className="h-5 w-5" />
+                  Learning Path
+                </CardTitle>
+                <CardDescription>
+                  Skills to focus on for maximum impact
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {stats.skillsAnalysis && stats.skillsAnalysis.length > 0 ? (
+                  <div className="space-y-4">
+                    {(() => {
+                      const improvementSkills = safeArray(stats.skillsAnalysis)
+                        .filter(skill => safeNumber(skill?.rejected) > 0)
+                        .sort((a, b) => safeNumber(a?.acceptanceRate) - safeNumber(b?.acceptanceRate))
+                        .slice(0, 3);
+                      
+                      const skillsToShow = improvementSkills.length > 0 
+                        ? improvementSkills 
+                        : safeArray(stats.skillsAnalysis)
+                            .sort((a, b) => safeNumber(a?.acceptanceRate) - safeNumber(b?.acceptanceRate))
+                            .slice(0, 3);
+                      
+                      return skillsToShow.map((skill, index) => (
+                        <div key={safeString(skill?.skill, `skill-${index}`)} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm">{safeString(skill?.skill)}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              {formatPercentage(skill?.acceptanceRate)} acceptance rate • 
+                              {formatCurrency(skill?.avgBudget)} avg budget
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {improvementSkills.length > 0 ? `Improve ${index + 1}` : `Develop ${index + 1}`}
+                          </Badge>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <IconTarget className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>Start analyzing jobs to get personalized learning recommendations</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <IconStar className="h-5 w-5" />
+                  Key Insights
+                </CardTitle>
+                <CardDescription>
+                  Your top performing areas and optimization opportunities
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                    <div>
+                      <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Top Performing Skill</h4>
+                      <p className="text-xs text-green-600 dark:text-green-400">{safeString(stats.insights?.topSkill)}</p>
+                    </div>
+                    <IconArrowUp className="h-4 w-4 text-green-600" />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                    <div>
+                      <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Best Platform</h4>
+                      <p className="text-xs text-green-600 dark:text-green-400">{safeString(stats.insights?.bestPlatform)}</p>
+                    </div>
+                    <IconGlobe className="h-4 w-4 text-green-600" />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                    <div>
+                      <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Optimal Budget Range</h4>
+                      <p className="text-xs text-green-600 dark:text-green-400">{safeString(stats.insights?.optimalBudgetRange)}</p>
+                    </div>
+                    <IconCash className="h-4 w-4 text-green-600" />
+                  </div>
+                  
+                  {stats.insights?.weakestSkill && stats.insights.weakestSkill !== 'N/A' && (
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                      <div>
+                        <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Improvement Focus</h4>
+                        <p className="text-xs text-green-600 dark:text-green-400">{safeString(stats.insights.weakestSkill)}</p>
+                      </div>
+                      <IconTarget className="h-4 w-4 text-green-600" />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Skills Performance Analysis */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -428,6 +608,21 @@ export default function StatsPage() {
 
         {/* Performance Analysis */}
         <TabsContent value="performance" className="space-y-6">
+          {/* AI Insights for Performance */}
+          <Card className="mb-6 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-green-900 dark:text-green-100">
+                <IconBulb className="h-5 w-5 text-green-600" />
+                Performance Intelligence
+              </CardTitle>
+              <CardDescription className="text-green-700/70 dark:text-green-300/70">
+                AI analysis of your decision-making patterns and efficiency
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {renderInsights(stats.aiInsights?.performanceInsights, <IconChartLine className="h-4 w-4" />, "Performance")}
+            </CardContent>
+          </Card>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader>
@@ -538,6 +733,21 @@ export default function StatsPage() {
 
         {/* Monetary Analysis */}
         <TabsContent value="monetary" className="space-y-6">
+          {/* AI Insights for Monetary */}
+          <Card className="mb-6 bg-linear-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 border-amber-200 dark:border-amber-800">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-amber-900 dark:text-amber-100">
+                <IconBulb className="h-5 w-5 text-amber-600" />
+                Financial Optimization
+              </CardTitle>
+              <CardDescription className="text-amber-700/70 dark:text-amber-300/70">
+                Smart insights to maximize your earning potential
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {renderInsights(stats.aiInsights?.monetaryInsights, <IconCoin className="h-4 w-4" />, "Monetary")}
+            </CardContent>
+          </Card>
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
@@ -606,6 +816,21 @@ export default function StatsPage() {
 
         {/* Platform Analysis */}
         <TabsContent value="platforms" className="space-y-6">
+          {/* AI Insights for Platforms */}
+          <Card className="mb-6 bg-linear-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 border-purple-200 dark:border-purple-800">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-purple-900 dark:text-purple-100">
+                <IconBulb className="h-5 w-5 text-purple-600" />
+                Platform Strategy
+              </CardTitle>
+              <CardDescription className="text-purple-700/70 dark:text-purple-300/70">
+                Optimize your approach across different freelance platforms
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {renderInsights(stats.aiInsights?.platformInsights, <IconGlobe className="h-4 w-4" />, "Platform")}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -650,6 +875,21 @@ export default function StatsPage() {
 
         {/* Budget Trends */}
         <TabsContent value="trends" className="space-y-6">
+          {/* AI Insights for Budget */}
+          <Card className="mb-6 bg-linear-to-r from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20 border-rose-200 dark:border-rose-800">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-rose-900 dark:text-rose-100">
+                <IconBulb className="h-5 w-5 text-rose-600" />
+                Budget Intelligence
+              </CardTitle>
+              <CardDescription className="text-rose-700/70 dark:text-rose-300/70">
+                Strategic insights for optimal project pricing and selection
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {renderInsights(stats.aiInsights?.budgetInsights, <IconChartLine className="h-4 w-4" />, "Budget")}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -688,110 +928,7 @@ export default function StatsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Learning Path & Action Items */}
-      <div className="grid gap-6 lg:grid-cols-2 mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <IconTarget className="h-5 w-5" />
-              Learning Path
-            </CardTitle>
-            <CardDescription>
-              Skills to focus on for maximum impact
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.skillsAnalysis.length > 0 ? (
-              <div className="space-y-4">
-                {/* Show skills with improvement opportunities or top skills to develop further */}
-                {(() => {
-                  // First try to show skills that were rejected (improvement opportunities)
-                  const improvementSkills = stats.skillsAnalysis
-                    .filter(skill => skill.rejected > 0)
-                    .sort((a, b) => a.acceptanceRate - b.acceptanceRate)
-                    .slice(0, 3);
-                  
-                  // If no rejected skills, show lowest acceptance rate skills as development opportunities
-                  const skillsToShow = improvementSkills.length > 0 
-                    ? improvementSkills 
-                    : stats.skillsAnalysis
-                        .sort((a, b) => a.acceptanceRate - b.acceptanceRate)
-                        .slice(0, 3);
-                  
-                  return skillsToShow.map((skill, index) => (
-                    <div key={skill.skill} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-sm">{skill.skill}</h4>
-                        <p className="text-xs text-muted-foreground">
-                          {skill.acceptanceRate.toFixed(1)}% acceptance rate • 
-                          ${skill.avgBudget.toFixed(0)} avg budget
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {improvementSkills.length > 0 ? `Improve ${index + 1}` : `Develop ${index + 1}`}
-                      </Badge>
-                    </div>
-                  ));
-                })()}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <IconTarget className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>Start analyzing jobs to get personalized learning recommendations</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <IconStar className="h-5 w-5" />
-              Key Insights
-            </CardTitle>
-            <CardDescription>
-              Your top performing areas and optimization opportunities
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
-                <div>
-                  <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Top Performing Skill</h4>
-                  <p className="text-xs text-green-600 dark:text-green-400">{stats.insights.topSkill}</p>
-                </div>
-                <IconArrowUp className="h-4 w-4 text-green-600" />
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
-                <div>
-                  <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Best Platform</h4>
-                  <p className="text-xs text-green-600 dark:text-green-400">{stats.insights.bestPlatform}</p>
-                </div>
-                <IconGlobe className="h-4 w-4 text-green-600" />
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
-                <div>
-                  <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Optimal Budget Range</h4>
-                  <p className="text-xs text-green-600 dark:text-green-400">{stats.insights.optimalBudgetRange}</p>
-                </div>
-                <IconCash className="h-4 w-4 text-green-600" />
-              </div>
-              
-              {stats.insights.weakestSkill !== 'N/A' && (
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
-                  <div>
-                    <h4 className="font-medium text-sm text-green-800 dark:text-green-300">Improvement Focus</h4>
-                    <p className="text-xs text-green-600 dark:text-green-400">{stats.insights.weakestSkill}</p>
-                  </div>
-                  <IconTarget className="h-4 w-4 text-orange-600" />
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
