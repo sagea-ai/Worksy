@@ -35,25 +35,28 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Calculate statistics
-    const totalJobs = allJobs.length;
-    const proposedJobs = allJobs.filter(
+    // Filter out declined jobs from main statistics (but keep them for jobsByState)
+    const activeJobs = allJobs.filter(job => job.state !== JobState.DECLINED);
+
+    // Calculate statistics (excluding declined jobs)
+    const totalJobs = activeJobs.length;
+    const proposedJobs = activeJobs.filter(
       (job) => job.state === JobState.PROPOSED
     ).length;
-    const completedJobs = allJobs.filter(
+    const completedJobs = activeJobs.filter(
       (job) => job.state === JobState.COMPLETED
     ).length;
-    const inProgressJobs = allJobs.filter(
+    const inProgressJobs = activeJobs.filter(
       (job) => job.state === JobState.IN_PROGRESS
     ).length;
 
-    // Calculate total proposed budget
-    const totalProposedBudget = allJobs
+    // Calculate total proposed budget (excluding declined jobs)
+    const totalProposedBudget = activeJobs
       .filter((job) => job.proposedBudget && job.state === JobState.PROPOSED)
       .reduce((sum, job) => sum + (job.proposedBudget || 0), 0);
 
-    // Get recent jobs (last 10)
-    const recentJobs = allJobs.slice(0, 10).map((job) => ({
+    // Get recent jobs (last 10, excluding declined)
+    const recentJobs = activeJobs.slice(0, 10).map((job) => ({
       id: job.id,
       title: job.title,
       state: job.state,

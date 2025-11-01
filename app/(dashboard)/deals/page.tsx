@@ -551,20 +551,87 @@ Always be helpful, professional, and provide practical recommendations that help
     if (!selectedJob) return
 
     try {
-      updateLocalJobState(selectedJob.id, 'NEW')
-      await updateJobState('NEW', 'User clicked not interested - reset to new state')
+      updateLocalJobState(selectedJob.id, 'DECLINED')
+      await updateJobState('DECLINED', 'User clicked not interested - job declined')
       
       setChatMessages(prev => [...prev, {
         id: Date.now().toString(),
         type: 'ai',
-        content: "Got it! You can always reconsider this opportunity later.",
+        content: "Got it! This job has been marked as declined and won't show up in your dashboard stats.",
         timestamp: new Date()
       }])
       
       setTimeout(() => storeChatHistory(), 500)
+      toast.success('Job marked as not interested', {
+        description: 'This job won\'t appear in your dashboard stats anymore'
+      })
     } catch (error) {
       console.error('❌ Error declining job:', error)
       updateLocalJobState(selectedJob.id, selectedJob.userJobState || 'NEW')
+      toast.error('Failed to decline job. Please try again.')
+    }
+  }
+
+  const handleQuickPropose = async () => {
+    if (!selectedJob) return
+
+    try {
+      updateLocalJobState(selectedJob.id, 'PROPOSING')
+      await updateJobState('PROPOSING', 'User initiated quick proposal submission')
+      
+      // Create a basic proposal without requiring analysis or building plan
+      const proposalText = `I'm interested in working on this project. Based on the requirements, I can deliver a high-quality solution within your budget and timeline. 
+
+Skills: ${selectedJob.skills.join(', ')}
+Budget: ${selectedJob.currency} ${selectedJob.price}
+
+I have experience with similar projects and would love to discuss this opportunity further. Please let me know if you have any questions about my approach or availability.`
+      
+      const proposalData = {
+        text: proposalText,
+        budget: selectedJob.price,
+        deadline: null
+      }
+
+      const response = await fetch('/api/jobs/manage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'submit_proposal',
+          jobData: { 
+            id: selectedJob.id,
+            platform: selectedJob.platform 
+          },
+          proposalData
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        console.log('✅ Quick proposal submitted successfully')
+        updateLocalJobState(selectedJob.id, 'PROPOSED')
+        
+        setChatMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          type: 'ai',
+          content: "🎉 Quick proposal submitted successfully! Your bid is now active and waiting for client response.",
+          timestamp: new Date()
+        }])
+        
+        setTimeout(() => storeChatHistory(), 500)
+        toast.success('Bid Submitted!', {
+          description: 'Your proposal has been sent to the client'
+        })
+      } else {
+        throw new Error(result.error || 'Failed to submit proposal')
+      }
+    } catch (error) {
+      console.error('❌ Error submitting quick proposal:', error)
+      updateLocalJobState(selectedJob.id, selectedJob.userJobState || 'NEW')
+      toast.error('Failed to submit proposal. Please try again.')
     }
   }
 
@@ -2671,6 +2738,15 @@ Always be helpful, professional, and provide practical recommendations that help
                             disabled={(!buildingPlan && !jobAnalysis) || generatingSteps || analyzingJob}
                           >
                             Bid Now
+                          </Button>
+                          <Button 
+                            variant="secondary"
+                            size="sm"
+                            onClick={handleQuickPropose}
+                            disabled={generatingSteps || analyzingJob}
+                            className="w-full text-xs"
+                          >
+                            Propose
                           </Button>
                           <Button 
                             variant="outline"

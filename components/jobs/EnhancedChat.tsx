@@ -42,6 +42,24 @@ interface EnhancedChatProps {
 export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) {
   const [state, setState] = useState<ChatState>('initial');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  
+  // Utility function to generate unique message IDs
+  const generateMessageId = (type: string) => `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Helper function to safely add messages without duplicates
+  const addMessage = (newMessage: ChatMessage) => {
+    setMessages((prev) => {
+      // Check if a similar message already exists to prevent duplicates
+      const hasSimilar = prev.some(msg => 
+        msg.content === newMessage.content && 
+        Math.abs(msg.timestamp.getTime() - newMessage.timestamp.getTime()) < 1000
+      );
+      if (hasSimilar) {
+        return prev;
+      }
+      return [...prev, newMessage];
+    });
+  };
   const [fitAnalysis, setFitAnalysis] = useState<JobFitAnalysisData | null>(null);
   const [pitch, setPitch] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -52,14 +70,19 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Initialize with welcome message
-    const welcomeMessage: ChatMessage = {
-      id: 'welcome',
-      type: 'ai',
-      content: "Do you want to see whether you're fit for this job or not?",
-      timestamp: new Date(),
-    };
-    setMessages([welcomeMessage]);
+    // Initialize with welcome message only if messages is empty
+    setMessages((prev) => {
+      if (prev.length === 0) {
+        const welcomeMessage: ChatMessage = {
+          id: generateMessageId('welcome'),
+          type: 'ai',
+          content: "Do you want to see whether you're fit for this job or not?",
+          timestamp: new Date(),
+        };
+        return [welcomeMessage];
+      }
+      return prev;
+    });
   }, []);
 
   const handleStartAnalysis = async () => {
@@ -67,12 +90,12 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
     setLoading(true);
 
     const analyzingMessage: ChatMessage = {
-      id: 'analyzing',
+      id: generateMessageId('analyzing'),
       type: 'ai',
       content: 'Analyzing your profile compatibility with this job...',
       timestamp: new Date(),
     };
-    setMessages((prev) => [...prev, analyzingMessage]);
+    addMessage(analyzingMessage);
 
     try {
       const response = await fetch('/api/jobs/analyze-fit', {
@@ -93,12 +116,12 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
     } catch (error) {
       console.error('Error analyzing job fit:', error);
       const errorMessage: ChatMessage = {
-        id: 'error',
+        id: generateMessageId('error'),
         type: 'ai',
         content: 'Sorry, I encountered an error while analyzing the job fit. Please try again.',
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      addMessage(errorMessage);
       setState('initial');
     } finally {
       setLoading(false);
@@ -118,7 +141,7 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
       });
 
       const acceptMessage: ChatMessage = {
-        id: 'accept',
+        id: generateMessageId('accept'),
         type: 'user',
         content: 'I accept this job',
         timestamp: new Date(),
@@ -126,7 +149,7 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
       setMessages((prev) => [...prev, acceptMessage]);
 
       const pitchQuestion: ChatMessage = {
-        id: 'pitch-question',
+        id: generateMessageId('pitch-question'),
         type: 'ai',
         content: 'Should I create a detailed pitch for this job?',
         timestamp: new Date(),
@@ -156,7 +179,7 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
       });
 
       const rejectMessage: ChatMessage = {
-        id: 'reject',
+        id: generateMessageId('reject'),
         type: 'user',
         content: reason || rejectionReason || 'I reject this job',
         timestamp: new Date(),
@@ -179,7 +202,7 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
     setLoading(true);
 
     const generatingMessage: ChatMessage = {
-      id: 'generating-pitch',
+      id: generateMessageId('generating-pitch'),
       type: 'ai',
       content: 'Generating your personalized pitch...',
       timestamp: new Date(),
@@ -203,7 +226,7 @@ export function EnhancedChat({ job, onDecision, onPropose }: EnhancedChatProps) 
     } catch (error) {
       console.error('Error generating pitch:', error);
       const errorMessage: ChatMessage = {
-        id: 'error-pitch',
+        id: generateMessageId('error-pitch'),
         type: 'ai',
         content: 'Sorry, I encountered an error while generating the pitch. Please try again.',
         timestamp: new Date(),
