@@ -128,16 +128,16 @@ export default function SAGEChat() {
       {/* Ultra-minimal header - Jony Ive style */}
       <div className="flex items-center justify-center py-4 border-b border-border/5">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-            <IconBrain className="h-3 w-3 text-primary" />
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <IconBrain className="h-13 w-13 text-primary" />
           </div>
-          <span className="text-sm font-medium text-muted-foreground tracking-wide">SAGE</span>
+          <span className="text-2xl font-medium text-muted-foreground tracking-wide">SAGE</span>
         </div>
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={clearMessages}
-          className="absolute right-4 text-muted-foreground/60 hover:text-muted-foreground transition-colors text-xs"
+          className="absolute right-4 text-emerald-800/60 bg-emerald-100 rounded-full p-1 px-2 hover:text-muted-foreground transition-colors text-xs"
         >
           New chat
         </Button>
@@ -148,7 +148,7 @@ export default function SAGEChat() {
         <div className="max-w-full">
           {messages.map((msg, index) => (
             <div key={msg.id} className={`group py-6 px-6 ${
-              msg.role === 'assistant' ? 'bg-muted/30' : 'bg-background'
+              msg.role === 'assistant' ? 'bg-background' : 'bg-background'
             } ${index === 0 ? 'pt-8' : ''} hover:bg-opacity-80 transition-colors`}>
               <div className="max-w-2xl mx-auto">
                 <div className="flex gap-6 items-start">
